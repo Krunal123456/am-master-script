@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
 
   const APPS_SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbx3qW2bLf9aec5FYUoJRuv87X10VvzRFSFHZL5YDfjFCGmoK3If5tT_sUZzqAVkgKKe/exec";
+    "https://script.google.com/macros/s/AKfycbwihvNiEjMiymwtRKGyqfC1yIhP-49mLEr4xDrCmdxubuPXY7qP-Op0x-mMpsN_37ZO/exec";
 
 
   try {
