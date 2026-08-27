@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>AM Master Script Automation</title>
+
+  <!-- Excel reader -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: #f5f7fb;
+      color: #172033;
+    }
+
+    .container {
+      max-width: 1150px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .header {
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 30px;
+      font-weight: 750;
+    }
+
+    .header p {
+      color: #667085;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #e4e7ec;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 12px rgba(16, 24, 40, 0.05);
+    }
+
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .upload-card {
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 25px;
+      background: #fafcff;
+      transition: 0.2s;
+    }
+
+    .upload-card:hover {
+      border-color: #1769e0;
+      background: #f8fbff;
+    }
+
+    .upload-card h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+    }
+
+    .upload-card p {
+      color: #667085;
+      font-size: 13px;
+      margin-bottom: 18px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .file-status {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #667085;
+    }
+
+    .ready {
+      color: #067647;
+      font-weight: 700;
+    }
+
+    .error {
+      color: #b42318;
+      font-weight: 700;
+    }
+
+    .button-area {
+      text-align: center;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #1769e0;
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      background: #1558b8;
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 18px;
+      padding: 15px;
+      background: #f8fafc;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #475467;
+      min-height: 48px;
+    }
+
+    .progress {
+      display: none;
+      margin-top: 15px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      border-radius: 10px;
+      background: #e4e7ec;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #1769e0;
+      transition: width 0.3s;
+    }
+
+    .result {
+      display: none;
+    }
+
+    .result h2 {
+      margin-top: 0;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .metric {
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 10px;
+    }
+
+    .metric-label {
+      color: #667085;
+      font-size: 12px;
+    }
+
+    .metric-value {
+      margin-top: 5px;
+      font-size: 22px;
+      font-weight: 750;
+    }
+
+    .result-link {
+      display: inline-block;
+      margin-top: 8px;
+      color: #1769e0;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .result-link:hover {
+      text-decoration: underline;
+    }
+
+    .warning-box {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 9px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+    }
+
+    .instructions {
+      color: #667085;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .instructions strong {
+      color: #344054;
+    }
+
+    @media (max-width: 800px) {
+
+      .upload-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics {
+        grid-template-columns: 1fr 1fr;
+      }
+
+    }
+
+    @media (max-width: 500px) {
+
+      .container {
+        margin: 15px auto;
+        padding: 12px;
+      }
+
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+
+    <h1>AM Master Script Automation</h1>
+
+    <p>
+      Upload the AM Stale Opps report and Open Pipeline report.
+      The application will automatically compare the data, generate
+      the consolidated Master Script, create individual AM reports,
+      save the Excel files to Google Drive, and send the reports by email.
+    </p>
+
+  </div>
+
+
+  <!-- UPLOAD SECTION -->
+  <div class="card">
+
+    <div class="upload-grid">
+
+      <!-- STALE REPORT -->
+      <div class="upload-card">
+
+        <h2>1. AM Stale Opps</h2>
+
+        <p>
+          Upload the latest AM Stale Opps Excel report.
+        </p>
+
+        <input
+          type="file"
+          id="staleFile"
+          accept=".xlsx,.xls,.csv"
+        />
+
+        <div
+          id="staleStatus"
+          class="file-status"
+        >
+          No file selected.
+        </div>
+
+      </div>
+
+
+      <!-- PIPELINE REPORT -->
+      <div class="upload-card">
+
+        <h2>2. Open Pipeline</h2>
+
+        <p>
+          Upload the Open Pipeline – Venkat CH report.
+        </p>
+
+        <input
+          type="file"
+          id="pipelineFile"
+          accept=".xlsx,.xls,.csv"
+        />
+
+        <div
+          id="pipelineStatus"
+          class="file-status"
+        >
+          No file selected.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- GENERATE -->
+  <div class="card">
+
+    <div class="button-area">
+
+      <button
+        id="generateButton"
+        disabled
+      >
+        Generate Master Script
+      </button>
+
+    </div>
+
+
+    <div
+      id="status"
+      class="status"
+    >
+      Please upload both files.
+    </div>
+
+
+    <div
+      id="progress"
+      class="progress"
+    >
+
+      <div class="progress-bar">
+
+        <div
+          id="progressFill"
+          class="progress-fill"
+        ></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- RESULT -->
+  <div
+    id="result"
+    class="card result"
+  >
+
+    <h2>
+      Automation Completed
+    </h2>
+
+    <div
+      id="metrics"
+      class="metrics"
+    ></div>
+
+
+    <div id="masterResult"></div>
+
+
+    <div id="warnings"></div>
+
+  </div>
+
+
+  <!-- HOW IT WORKS -->
+  <div class="card">
+
+    <h2>How it works</h2>
+
+    <div class="instructions">
+
+      <p>
+        <strong>Open Pipeline is the master dataset.</strong>
+        The application does not modify the original Open Pipeline data.
+      </p>
+
+      <p>
+        Each opportunity is checked against the AM Stale Opps report.
+        If the opportunity exists in the stale report,
+        <strong>Stale = YES</strong> is added and highlighted in red.
+      </p>
+
+      <p>
+        After processing, the system creates:
+      </p>
+
+      <ul>
+
+        <li>Consolidated Master Script Excel</li>
+
+        <li>Individual AM Excel reports</li>
+
+        <li>Google Drive folder structure</li>
+
+        <li>Individual email reports</li>
+
+      </ul>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/*
+=========================================================
+CONFIGURATION
+=========================================================
+*/
+
+const GOOGLE_APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbx3qW2bLf9aec5FYUoJRuv87X10VvzRFSFHZL5YDfjFCGmoK3If5tT_sUZzqAVkgKKe/exec";
+
+
+/*
+=========================================================
+STATE
+=========================================================
+*/
+
+let staleReport = null;
+
+let pipelineReport = null;
+
+let processing = false;
+
+
+/*
+=========================================================
+DOM HELPERS
+=========================================================
+*/
+
+function get(id) {
+
+  return document.getElementById(id);
+
+}
+
+
+/*
+=========================================================
+NORMALIZE TEXT
+=========================================================
+*/
+
+function normalize(value) {
+
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+}
+
+
+/*
+=========================================================
+READ EXCEL FILE
+=========================================================
+*/
+
+function readExcelFile(file) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const reader =
+        new FileReader();
+
+
+      reader.onload =
+        function(event) {
+
+          try {
+
+            const workbook =
+              XLSX.read(
+                new Uint8Array(
+                  event.target.result
+                ),
+                {
+                  type: "array",
+                  raw: true
+                }
+              );
+
+
+            resolve(workbook);
+
+          }
+
+          catch(error) {
+
+            reject(error);
+
+          }
+
+        };
+
+
+      reader.onerror =
+        function() {
+
+          reject(
+            new Error(
+              "Unable to read file."
+            )
+          );
+
+        };
+
+
+      reader.readAsArrayBuffer(file);
+
+    }
+  );
+
+}
+
+
+/*
+=========================================================
+FIND HEADER ROW
+=========================================================
+*/
+
+function findHeaderRow(
+  workbook,
+  requiredColumns
+) {
+
+  const required =
+    requiredColumns.map(
+      normalize
+    );
+
+
+  for (
+    const sheetName of workbook.SheetNames
+  ) {
+
+    const sheet =
+      workbook.Sheets[sheetName];
+
+
+    const rows =
+      XLSX.utils.sheet_to_json(
+        sheet,
+        {
+          header: 1,
+          defval: null,
+          raw: true
+        }
+      );
+
+
+    for (
+      let rowIndex = 0;
+      rowIndex < Math.min(
+        rows.length,
+        100
+      );
+      rowIndex++
+    ) {
+
+      const row =
+        (rows[rowIndex] || [])
+          .map(normalize);
+
+
+      const found =
+        required.every(
+          column =>
+            row.includes(column)
+        );
+
+
+      if (found) {
+
+        return {
+
+          sheetName,
+
+          rowIndex,
+
+          rows
+
+        };
+
+      }
+
+    }
+
+  }
+
+
+  throw new Error(
+    "Could not identify the Salesforce report headers."
+  );
+
+}
+
+
+/*
+=========================================================
+PARSE REPORT
+=========================================================
+*/
+
+function parseReport(
+  workbook,
+  requiredColumns
+) {
+
+  const info =
+    findHeaderRow(
+      workbook,
+      requiredColumns
+    );
+
+
+  const rows =
+    info.rows;
+
+
+  const headers =
+    (rows[info.rowIndex] || [])
+      .map(
+        (value, index) =>
+          String(
+            value ??
+            `Column ${index + 1}`
+          ).trim()
+      );
+
+
+  const output = [];
+
+
+  const carry = {};
+
+
+  for (
+    let i = info.rowIndex + 1;
+    i < rows.length;
+    i++
+  ) {
+
+    const values =
+      rows[i] || [];
+
+
+    const object = {};
+
+
+    headers.forEach(
+      (header, columnIndex) => {
+
+        object[header] =
+          values[columnIndex] ??
+          "";
+
+      }
+    );
+
+
+    /*
+     * Ignore completely empty rows.
+     */
+
+    if (
+      !Object.values(object)
+        .some(
+          value =>
+            value !== "" &&
+            value !== null
+        )
+    ) {
+
+      continue;
+
+    }
+
+
+    /*
+     * Ignore subtotal rows.
+     */
+
+    const firstCell =
+      normalize(values[0]);
+
+
+    if (
+      firstCell === "subtotal" ||
+      firstCell === "count" ||
+      firstCell.startsWith(
+        "subtotal"
+      )
+    ) {
+
+      continue;
+
+    }
+
+
+    /*
+     * Salesforce reports can
+     * visually merge owner/stage cells.
+     */
+
+    headers.forEach(
+      header => {
+
+        const normalized =
+          normalize(header)
+            .replace(
+              /[^a-z0-9]/g,
+              ""
+            );
+
+
+        if (
+          normalized ===
+            "opportunityowner" ||
+          normalized ===
+            "stage"
+        ) {
+
+          if (
+            object[header] !== "" &&
+            object[header] !== null
+          ) {
+
+            carry[normalized] =
+              object[header];
+
+          }
+
+          else if (
+            carry[normalized] !==
+            undefined
+          ) {
+
+            object[header] =
+              carry[normalized];
+
+          }
+
+        }
+
+      }
+    );
+
+
+    output.push(object);
+
+  }
+
+
+  return {
+
+    headers,
+
+    rows: output
+
+  };
+
+}
+
+
+/*
+=========================================================
+LOAD STALE REPORT
+=========================================================
+*/
+
+async function loadStaleFile(file) {
+
+  try {
+
+    get("staleStatus").textContent =
+      "Reading file...";
+
+
+    const workbook =
+      await readExcelFile(file);
+
+
+    staleReport =
+      parseReport(
+        workbook,
+        [
+          "Account Name",
+          "Opportunity Name",
+          "Age",
+          "Close Date"
+        ]
+      );
+
+
+    get("staleStatus").innerHTML =
+      `<span class="ready">
+        ✓ ${escapeHtml(file.name)}
+        — ${staleReport.rows.length} rows loaded
+      </span>`;
+
+
+    checkReady();
+
+  }
+
+  catch(error) {
+
+    staleReport = null;
+
+
+    get("staleStatus").innerHTML =
+      `<span class="error">
+        ${escapeHtml(error.message)}
+      </span>`;
+
+
+    checkReady();
+
+  }
+
+}
+
+
+/*
+=========================================================
+LOAD PIPELINE REPORT
+=========================================================
+*/
+
+async function loadPipelineFile(file) {
+
+  try {
+
+    get("pipelineStatus").textContent =
+      "Reading file...";
+
+
+    const workbook =
+      await readExcelFile(file);
+
+
+    pipelineReport =
+      parseReport(
+        workbook,
+        [
+          "Account Name",
+          "Opportunity Name",
+          "Amount",
+          "Created Date"
+        ]
+      );
+
+
+    get("pipelineStatus").innerHTML =
+      `<span class="ready">
+        ✓ ${escapeHtml(file.name)}
+        — ${pipelineReport.rows.length} rows loaded
+      </span>`;
+
+
+    checkReady();
+
+  }
+
+  catch(error) {
+
+    pipelineReport = null;
+
+
+    get("pipelineStatus").innerHTML =
+      `<span class="error">
+        ${escapeHtml(error.message)}
+      </span>`;
+
+
+    checkReady();
+
+  }
+
+}
+
+
+/*
+=========================================================
+CHECK READY
+=========================================================
+*/
+
+function checkReady() {
+
+  const ready =
+    staleReport !== null &&
+    pipelineReport !== null;
+
+
+  get("generateButton").disabled =
+    !ready;
+
+
+  if (ready) {
+
+    get("status").textContent =
+      "Both files are ready. Click Generate Master Script.";
+
+  }
+
+}
+
+
+/*
+=========================================================
+GENERATE
+=========================================================
+*/
+
+async function generateMasterScript() {
+
+  if (
+    processing ||
+    !staleReport ||
+    !pipelineReport
+  ) {
+
+    return;
+
+  }
+
+
+  processing = true;
+
+
+  get("generateButton").disabled =
+    true;
+
+
+  get("result").style.display =
+    "none";
+
+
+  get("progress").style.display =
+    "block";
+
+
+  setProgress(15);
+
+
+  get("status").textContent =
+    "Preparing reports...";
+
+
+  try {
+
+    setProgress(30);
+
+
+    get("status").textContent =
+      "Sending reports to Google Apps Script...";
+
+
+    /*
+     * IMPORTANT:
+     *
+     * We send ONLY the parsed data.
+     *
+     * Google Apps Script performs:
+     *
+     * - Matching
+     * - Master generation
+     * - AM reports
+     * - Drive
+     * - Gmail
+     */
+
+    const payload = {
+
+      stale: {
+
+        headers:
+          staleReport.headers,
+
+        rows:
+          staleReport.rows
+
+      },
+
+      pipeline: {
+
+        headers:
+          pipelineReport.headers,
+
+        rows:
+          pipelineReport.rows
+
+      }
+
+    };
+
+
+    setProgress(50);
+
+
+    const response =
+      await fetch(
+        GOOGLE_APPS_SCRIPT_URL,
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+              "text/plain;charset=utf-8"
+
+          },
+
+          body:
+            JSON.stringify(payload)
+
+        }
+      );
+
+
+    setProgress(75);
+
+
+    const responseText =
+      await response.text();
+
+
+    let result;
+
+
+    try {
+
+      result =
+        JSON.parse(
+          responseText
+        );
+
+    }
+
+    catch(error) {
+
+      throw new Error(
+        "Google Apps Script returned an unexpected response."
+      );
+
+    }
+
+
+    if (
+      !result.ok
+    ) {
+
+      throw new Error(
+        result.error ||
+        "Automation failed."
+      );
+
+    }
+
+
+    setProgress(100);
+
+
+    get("status").innerHTML =
+      `<span class="ready">
+        ✓ Automation completed successfully.
+      </span>`;
+
+
+    showResult(result);
+
+  }
+
+  catch(error) {
+
+    get("status").innerHTML =
+      `<span class="error">
+        Automation failed:
+        ${escapeHtml(
+          error.message ||
+          String(error)
+        )}
+      </span>`;
+
+
+    setProgress(0);
+
+  }
+
+  finally {
+
+    processing = false;
+
+
+    get("generateButton").disabled =
+      false;
+
+  }
+
+}
+
+
+/*
+=========================================================
+SHOW RESULT
+=========================================================
+*/
+
+function showResult(result) {
+
+  get("result").style.display =
+    "block";
+
+
+  get("metrics").innerHTML =
+
+    metric(
+      "Consolidated",
+      result.consolidatedRows
+    ) +
+
+    metric(
+      "Stale Rows",
+      result.staleRows
+    ) +
+
+    metric(
+      "Stale Matched",
+      result.staleMatched
+    ) +
+
+    metric(
+      "AM Reports",
+      result.amCount
+    );
+
+
+  get("masterResult").innerHTML =
+
+    `<p>
+      <strong>
+        Master Excel generated:
+      </strong>
+    </p>
+
+    <a
+      class="result-link"
+      href="${escapeAttribute(
+        result.masterFileUrl
+      )}"
+      target="_blank"
+      rel="noopener"
+    >
+      Open Master Excel in Google Drive
+    </a>
+
+    <p>
+      <strong>
+        Email recipient:
+      </strong>
+      krunalkishortote@gmail.com
+    </p>`;
+
+
+  if (
+    result.errors &&
+    result.errors.length
+  ) {
+
+    get("warnings").innerHTML =
+
+      `<div class="warning-box">
+
+        <strong>
+          Warnings / Errors
+        </strong>
+
+        <ul>
+
+          ${
+            result.errors
+              .map(
+                error =>
+                  `<li>
+                    ${escapeHtml(error)}
+                  </li>`
+              )
+              .join("")
+          }
+
+        </ul>
+
+      </div>`;
+
+  }
+
+  else {
+
+    get("warnings").innerHTML =
+      "";
+
+  }
+
+}
+
+
+/*
+=========================================================
+METRIC
+=========================================================
+*/
+
+function metric(
+  label,
+  value
+) {
+
+  return `
+
+    <div class="metric">
+
+      <div class="metric-label">
+        ${escapeHtml(label)}
+      </div>
+
+      <div class="metric-value">
+        ${escapeHtml(
+          String(
+            value ?? 0
+          )
+        )}
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/*
+=========================================================
+PROGRESS
+=========================================================
+*/
+
+function setProgress(
+  value
+) {
+
+  get("progressFill")
+    .style.width =
+    `${value}%`;
+
+}
+
+
+/*
+=========================================================
+ESCAPE HTML
+=========================================================
+*/
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+
+/*
+=========================================================
+ESCAPE ATTRIBUTE
+=========================================================
+*/
+
+function escapeAttribute(value) {
+
+  return String(value ?? "")
+    .replace(
+      /"/g,
+      "&quot;"
+    );
+
+}
+
+
+/*
+=========================================================
+FILE EVENTS
+=========================================================
+*/
+
+get("staleFile")
+  .addEventListener(
+    "change",
+    function() {
+
+      const file =
+        this.files[0];
+
+
+      if (file) {
+
+        loadStaleFile(file);
+
+      }
+
+    }
+  );
+
+
+get("pipelineFile")
+  .addEventListener(
+    "change",
+    function() {
+
+      const file =
+        this.files[0];
+
+
+      if (file) {
+
+        loadPipelineFile(file);
+
+      }
+
+    }
+  );
+
+
+get("generateButton")
+  .addEventListener(
+    "click",
+    generateMasterScript
+  );
+
+
+</script>
+
+</body>
+</html>
