@@ -205,7 +205,148 @@ th {
 
 
 <div class="container">
+<!-- =====================================================
+     FILE UPLOAD SECTION
+     ===================================================== -->
 
+<section class="upload-panel">
+
+  <div class="upload-header">
+    <div>
+      <h2>Generate AM Master Report</h2>
+      <p>
+        Upload both source reports to generate the consolidated
+        master report and individual AM reports.
+      </p>
+    </div>
+
+    <div id="uploadStatus" class="upload-status">
+      Waiting for files
+    </div>
+  </div>
+
+
+  <div class="upload-grid">
+
+    <!-- AM STALE -->
+
+    <div class="file-box">
+
+      <div class="file-icon">
+        📊
+      </div>
+
+      <div class="file-content">
+
+        <h3>AM Stale Report</h3>
+
+        <p>
+          Upload the latest AM stale Excel/CSV report.
+        </p>
+
+        <input
+          type="file"
+          id="amStaleFile"
+          accept=".xlsx,.xls,.csv"
+          hidden
+        >
+
+        <button
+          class="upload-button"
+          onclick="document.getElementById('amStaleFile').click()">
+
+          Choose AM Stale File
+
+        </button>
+
+        <div
+          id="amStaleName"
+          class="file-name">
+
+          No file selected
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- OPEN PIPELINE -->
+
+    <div class="file-box">
+
+      <div class="file-icon">
+        💼
+      </div>
+
+      <div class="file-content">
+
+        <h3>Open Pipeline Report</h3>
+
+        <p>
+          Upload the latest open pipeline Excel/CSV report.
+        </p>
+
+        <input
+          type="file"
+          id="openPipelineFile"
+          accept=".xlsx,.xls,.csv"
+          hidden
+        >
+
+        <button
+          class="upload-button"
+          onclick="document.getElementById('openPipelineFile').click()">
+
+          Choose Open Pipeline
+
+        </button>
+
+        <div
+          id="openPipelineName"
+          class="file-name">
+
+          No file selected
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="generate-row">
+
+    <div>
+
+      <strong>
+        Both files are required
+      </strong>
+
+      <span>
+        The system will automatically match stale
+        accounts/opportunities against the open pipeline.
+      </span>
+
+    </div>
+
+
+    <button
+      id="generateButton"
+      class="generate-button"
+      onclick="generateMasterReport()"
+      disabled>
+
+      Generate Master Report
+
+    </button>
+
+  </div>
+
+</section>
   <div class="controls">
 
     <label>
