@@ -496,12 +496,7 @@
         —
       </div>
 
-      <div
-        id="kpiStaleAmount"
-        class="kpi-sub"
-      >
-        Amount: —
-      </div>
+      <div id="kpiStaleAmount" class="kpi-sub">AM Stale records</div>
     </div>
 
 
@@ -517,12 +512,7 @@
         —
       </div>
 
-      <div
-        id="kpiPipelineAmount"
-        class="kpi-sub"
-      >
-        Amount: —
-      </div>
+      <div id="kpiPipelineAmount" class="kpi-sub">Open Pipeline records</div>
     </div>
 
 
@@ -572,14 +562,12 @@
 
     <div class="toolbar">
 
-      <select id="viewSelect">
-        <option value="consolidated">
-          Consolidated
-        </option>
+      <button id="dashboardTab" class="tab active">Dashboard</button>
+      <button id="historyTab" class="tab">History</button>
 
-        <option value="sales">
-          Sales / Open Pipeline
-        </option>
+      <select id="viewSelect">
+        <option value="consolidated">Consolidated</option>
+        <option value="sales">Sales / Open Pipeline</option>
       </select>
 
       <input
@@ -710,7 +698,7 @@
 ========================================================= */
 
 const API_URL =
-"https://script.google.com/macros/s/AKfycbwCHpkVVQM9fTfSDxbytMLzhomsb-DKHFlC9ZciyH-RhNuQoQ0aJ_L2nJBMWkMHSmTR/exec";
+"https://script.google.com/macros/s/AKfycbx3qW2bLf9aec5FYUoJRuv87X10VvzRFSFHZL5YDfjFCGmoK3If5tT_sUZzqAVkgKKe/exec";
 
 
 /* =========================================================
@@ -1152,151 +1140,110 @@ function combinedKey(row) {
 
 function buildReport(staleRows, pipelineRows) {
 
+  const isSummaryRow = row => Object.values(row || {}).some(v => {
+    const x = String(v ?? "").trim().toLowerCase();
+    return x === "subtotal" || x === "total" || x === "grand total" || x.includes("subtotal:");
+  });
+
+  staleRows = staleRows.filter(r => !isSummaryRow(r));
+  pipelineRows = pipelineRows.filter(r => !isSummaryRow(r));
+
   fillDownOwner(staleRows);
   fillDownOwner(pipelineRows);
 
-  // Index ALL open-pipeline records.
-  const byOpportunity = new Map();
-  const byAccountOpportunity = new Map();
+  const staleByCombined = new Set();
+  const staleByOpportunity = new Set();
 
-  pipelineRows.forEach(row => {
-    const opp = opportunityKey(row);
-    const combined = combinedKey(row);
-
-    if (opp) byOpportunity.set(opp, row);
-    if (combined) byAccountOpportunity.set(combined, row);
-  });
-
-  // Build a set of stale deals so pipeline records can be marked stale.
-  const staleKeys = new Set();
   staleRows.forEach(row => {
-    const opp = opportunityKey(row);
-    const combined = combinedKey(row);
-    if (opp) staleKeys.add('opp|' + opp);
-    if (combined) staleKeys.add('combined|' + combined);
+    const c = combinedKey(row);
+    const o = opportunityKey(row);
+    if (c) staleByCombined.add(c);
+    if (o) staleByOpportunity.add(o);
   });
 
-  // Start with ALL open pipeline deals.
   const consolidatedMap = new Map();
 
-  pipelineRows.forEach((row, index) => {
-    const opp = opportunityKey(row);
-    const combined = combinedKey(row);
-    const stale =
-      (opp && staleKeys.has('opp|' + opp)) ||
-      (combined && staleKeys.has('combined|' + combined));
-
-    const key =
-      combined ||
-      ('opp|' + opp) ||
-      ('pipeline|' + index);
-
-    consolidatedMap.set(key, {
-      "AM": getAM(row),
-      "Account Name": getAccount(row),
-      "Opportunity Name": getOpportunity(row),
-      "Google Domain": getValue(row, ["Google Domain"]),
-      "Close Date": getValue(row, ["Close Date"]),
-      "Created Date": getValue(row, ["Created Date"]),
-      "Stage": getValue(row, ["Stage"]),
-      "Age": getValue(row, ["Age"]),
-      "Stage Duration": getValue(row, ["Stage Duration"]),
-      "Expected Revenue": getValue(row, ["Expected Revenue"]),
-      "Probability (%)": getValue(row, ["Probability (%)"]),
-      "Next Step": getValue(row, ["Next Step"]),
-      "Lead Source": getValue(row, ["Lead Source"]),
-      "Type": getValue(row, ["Type"]),
-      "Last Activity": getValue(row, ["Last Activity"]),
-      "Owner Title": getValue(row, ["Opportunity Owner: Title"]),
-      "Stale": stale ? "YES" : "NO",
-      "Found in Open Pipeline": "YES"
-    });
+  const makeRecord = (row, stale, inPipeline) => ({
+    "AM": getAM(row),
+    "Account Name": getAccount(row),
+    "Opportunity Name": getOpportunity(row),
+    "Google Domain": getValue(row, ["Google Domain"]),
+    "Close Date": getValue(row, ["Close Date"]),
+    "Created Date": getValue(row, ["Created Date"]),
+    "Stage": getValue(row, ["Stage"]),
+    "Age": getValue(row, ["Age"]),
+    "Stage Duration": getValue(row, ["Stage Duration"]),
+    "Next Step": getValue(row, ["Next Step"]),
+    "Lead Source": getValue(row, ["Lead Source"]),
+    "Type": getValue(row, ["Type"]),
+    "Last Activity": getValue(row, ["Last Activity"]),
+    "Owner Title": getValue(row, ["Opportunity Owner: Title", "Owner Title"]),
+    "Stale": stale ? "YES" : "NO",
+    "Found in Open Pipeline": inPipeline ? "YES" : "NO"
   });
 
-  // Add stale records that do NOT exist in open pipeline.
-  staleRows.forEach((stale, index) => {
-    const opp = opportunityKey(stale);
-    const combined = combinedKey(stale);
-    const key = combined || ('opp|' + opp);
+  pipelineRows.forEach((row, index) => {
+    const c = combinedKey(row);
+    const o = opportunityKey(row);
+    const stale = (c && staleByCombined.has(c)) || (o && staleByOpportunity.has(o));
+    const key = c || (o ? "opp|" + o : "pipeline|" + index);
+    consolidatedMap.set(key, makeRecord(row, stale, true));
+  });
 
+  staleRows.forEach((row, index) => {
+    const c = combinedKey(row);
+    const o = opportunityKey(row);
     let existingKey = null;
 
-    if (combined && consolidatedMap.has(combined)) {
-      existingKey = combined;
-    } else if (opp) {
-      for (const [k, row] of consolidatedMap.entries()) {
-        if (opportunityKey(row) === opp) {
-          existingKey = k;
-          break;
-        }
+    if (c && consolidatedMap.has(c)) {
+      existingKey = c;
+    } else if (o) {
+      for (const [key, existing] of consolidatedMap.entries()) {
+        if (opportunityKey(existing) === o) { existingKey = key; break; }
       }
     }
 
     if (existingKey) {
       consolidatedMap.get(existingKey).Stale = "YES";
-      return;
+    } else {
+      consolidatedMap.set(c || (o ? "opp|" + o : "stale|" + index), makeRecord(row, true, false));
     }
-
-    consolidatedMap.set(
-      key || ('stale|' + index),
-      {
-        "AM": getAM(stale),
-        "Account Name": getAccount(stale),
-        "Opportunity Name": getOpportunity(stale),
-        "Google Domain": getValue(stale, ["Google Domain"]),
-        "Close Date": getValue(stale, ["Close Date"]),
-        "Created Date": getValue(stale, ["Created Date"]),
-        "Stage": getValue(stale, ["Stage"]),
-        "Age": getValue(stale, ["Age"]),
-        "Stage Duration": getValue(stale, ["Stage Duration"]),
-        "Expected Revenue": getValue(stale, ["Expected Revenue"]),
-        "Probability (%)": getValue(stale, ["Probability (%)"]),
-        "Next Step": getValue(stale, ["Next Step"]),
-        "Lead Source": getValue(stale, ["Lead Source"]),
-        "Type": getValue(stale, ["Type"]),
-        "Last Activity": getValue(stale, ["Last Activity"]),
-        "Owner Title": getValue(stale, ["Opportunity Owner: Title"]),
-        "Stale": "YES",
-        "Found in Open Pipeline": "NO"
-      }
-    );
   });
 
   const consolidated = Array.from(consolidatedMap.values());
 
-  // Sales = ALL open-pipeline deals. Keep Amount out of the final report.
-  const sales = pipelineRows.map(row => ({
-    "AM": getAM(row),
-    "Account Name": getAccount(row),
-    "Opportunity Name": getOpportunity(row),
-    "Stage": getValue(row, ["Stage"]),
-    "Created Date": getValue(row, ["Created Date"]),
-    "Last Activity": getValue(row, ["Last Activity"]),
-    "Age": getValue(row, ["Age"]),
-    "Opportunity Quantity": getValue(row, ["Opportunity Quantity"]),
-    "Next Step": getValue(row, ["Next Step"]),
-    "Last Modified Date": getValue(row, ["Last Modified Date"]),
-    "Last Modified By": getValue(row, ["Last Modified By"]),
-    "Stale": staleKeys.has('opp|' + opportunityKey(row)) || staleKeys.has('combined|' + combinedKey(row)) ? "YES" : "NO",
-    "Found in Open Pipeline": "YES"
-  }));
-
-  // Exactly the AMs found across BOTH source files, capped at 10.
-  const amSet = new Set();
-  [...staleRows, ...pipelineRows].forEach(row => {
-    const am = getAM(row);
-    if (am && am !== "Unassigned") amSet.add(String(am).trim());
+  const sales = pipelineRows.map(row => {
+    const c = combinedKey(row);
+    const o = opportunityKey(row);
+    const stale = (c && staleByCombined.has(c)) || (o && staleByOpportunity.has(o));
+    return {
+      "AM": getAM(row),
+      "Account Name": getAccount(row),
+      "Opportunity Name": getOpportunity(row),
+      "Stage": getValue(row, ["Stage"]),
+      "Created Date": getValue(row, ["Created Date"]),
+      "Last Activity": getValue(row, ["Last Activity"]),
+      "Age": getValue(row, ["Age"]),
+      "Opportunity Quantity": getValue(row, ["Opportunity Quantity"]),
+      "Next Step": getValue(row, ["Next Step"]),
+      "Last Modified Date": getValue(row, ["Last Modified Date"]),
+      "Last Modified By": getValue(row, ["Last Modified By"]),
+      "Stale": stale ? "YES" : "NO",
+      "Found in Open Pipeline": "YES"
+    };
   });
 
-  const ams = [...amSet].sort().slice(0, 10);
+  const amSet = new Set();
+  [...staleRows, ...pipelineRows].forEach(row => {
+    const am = String(getAM(row) || "").trim();
+    const n = normalize(am);
+    if (am && !["subtotal","total","grandtotal","unassigned"].includes(n)) amSet.add(am);
+  });
 
-  const matchedCount = consolidated.filter(
-    row => row["Found in Open Pipeline"] === "YES"
-  ).length;
+  const ams = [...amSet].sort((a,b) => a.localeCompare(b)).slice(0, 10);
 
-  const staleCount = consolidated.filter(
-    row => row.Stale === "YES"
-  ).length;
+  const staleCount = consolidated.filter(r => r.Stale === "YES").length;
+  const matchedCount = consolidated.filter(r => r.Stale === "YES" && r["Found in Open Pipeline"] === "YES").length;
 
   return {
     consolidated,
@@ -1384,71 +1331,16 @@ async function callAPI(
 ========================================================= */
 
 function renderKPI() {
-
-  const report =
-    state.report;
-
-
-  $("kpiStale").textContent =
-    report.staleCount.toLocaleString();
-
-
-  $("kpiPipeline").textContent =
-    report.pipelineCount.toLocaleString();
-
-
-  $("kpiAMs").textContent =
-    report.ams.length.toLocaleString();
-
-
-  $("kpiMatched").textContent =
-    report.matchedCount.toLocaleString();
-
-
-  const staleAmount =
-    report.consolidated.reduce(
-      (total, row) =>
-        total +
-        numberValue(row.Amount),
-      0
-    );
-
-
-  const pipelineAmount =
-    report.sales.reduce(
-      (total, row) =>
-        total +
-        numberValue(row.Amount),
-      0
-    );
-
-
-  $("kpiStaleAmount").textContent =
-    "Amount: " +
-    money(staleAmount);
-
-
-  $("kpiPipelineAmount").textContent =
-    "Amount: " +
-    money(pipelineAmount);
-
-
-  const percentage =
-    report.staleCount
-      ? (
-          report.matchedCount /
-          report.staleCount *
-          100
-        ).toFixed(1)
-      : 0;
-
-
-  $("kpiMatchedPercent").textContent =
-    percentage +
-    "% of stale opportunities found in pipeline";
-
+  const report = state.report;
+  $("kpiStale").textContent = report.staleCount.toLocaleString();
+  $("kpiPipeline").textContent = report.pipelineCount.toLocaleString();
+  $("kpiAMs").textContent = report.ams.length.toLocaleString();
+  $("kpiMatched").textContent = report.matchedCount.toLocaleString();
+  $("kpiStaleAmount").textContent = "AM Stale records";
+  $("kpiPipelineAmount").textContent = "Open Pipeline records";
+  const pct = report.staleCount ? (report.matchedCount / report.staleCount * 100).toFixed(1) : "0.0";
+  $("kpiMatchedPercent").textContent = pct + "% of stale opportunities found in pipeline";
 }
-
 
 /* =========================================================
    RENDER AM FILTER
@@ -1758,18 +1650,6 @@ function renderTable() {
 
 
           if (
-            column === "Amount" ||
-            column === "Expected Revenue" ||
-            column === "Pipeline Amount"
-          ) {
-
-            value =
-              money(value);
-
-          }
-
-
-          if (
             column === "Stale"
           ) {
 
@@ -1847,8 +1727,7 @@ function renderCharts() {
     labels.map(
       am =>
         report.consolidated.filter(
-          row =>
-            row.AM === am
+          row => row.AM === am && row.Stale === "YES"
         ).length
     );
 
@@ -2360,6 +2239,24 @@ async function loadHistory() {
 
 
 /* =========================================================
+   DASHBOARD / HISTORY TABS
+========================================================= */
+
+function showDashboard() {
+  $("historySection").classList.add("hidden");
+  $("dashboardTab").classList.add("active");
+  $("historyTab").classList.remove("active");
+}
+
+async function showHistory() {
+  $("historySection").classList.remove("hidden");
+  $("dashboardTab").classList.remove("active");
+  $("historyTab").classList.add("active");
+  await loadHistory();
+  $("historySection").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+/* =========================================================
    FILE UI
 ========================================================= */
 
@@ -2464,7 +2361,19 @@ $("emailAllBtn")
 $("historyBtn")
   .addEventListener(
     "click",
-    loadHistory
+    showHistory
+  );
+
+$("dashboardTab")
+  .addEventListener(
+    "click",
+    showDashboard
+  );
+
+$("historyTab")
+  .addEventListener(
+    "click",
+    showHistory
   );
 
 
