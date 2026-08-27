@@ -1,4486 +1,2612 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>AM Master Script | Manager Dashboard</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
-<style>
-
-:root {
-    --bg: #f5f7fb;
-    --surface: #ffffff;
-    --surface-2: #f8fafc;
-    --text: #111827;
-    --muted: #64748b;
-    --border: #e5e7eb;
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --success: #16a34a;
-    --danger: #dc2626;
-    --warning: #d97706;
-    --shadow: 0 8px 30px rgba(15,23,42,.07);
-    --radius: 16px;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family:
-        Inter,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-    background: var(--bg);
-    color: var(--text);
-}
-
-button,
-input,
-select {
-    font: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-/* =========================
-   LAYOUT
-========================= */
-
-.app {
-    display: flex;
-    min-height: 100vh;
-}
-
-.sidebar {
-    width: 250px;
-    background: #0f172a;
-    color: white;
-    padding: 22px 16px;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 20;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 10px 28px;
-}
-
-.logo-icon {
-    width: 38px;
-    height: 38px;
-    background: #2563eb;
-    border-radius: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-}
-
-.logo-title {
-    font-size: 15px;
-    font-weight: 750;
-}
-
-.logo-subtitle {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-top: 2px;
-}
-
-.nav {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.nav button {
-    border: 0;
-    background: transparent;
-    color: #cbd5e1;
-    padding: 12px 13px;
-    border-radius: 10px;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 11px;
-}
-
-.nav button:hover,
-.nav button.active {
-    background: #1e293b;
-    color: white;
-}
-
-.nav-icon {
-    width: 22px;
-    text-align: center;
-}
-
-.main {
-    margin-left: 250px;
-    width: calc(100% - 250px);
-    min-height: 100vh;
-}
-
-.topbar {
-    height: 72px;
-    background: rgba(255,255,255,.9);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 28px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.page-title {
-    font-size: 20px;
-    font-weight: 750;
-}
-
-.page-subtitle {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-}
-
-.manager-pill {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #dbeafe;
-    border-radius: 999px;
-    padding: 8px 13px;
-    font-size: 12px;
-    font-weight: 650;
-}
-
-.content {
-    padding: 26px;
-    max-width: 1800px;
-    margin: auto;
-}
-
-/* =========================
-   SECTIONS
-========================= */
-
-.section {
-    display: none;
-}
-
-.section.active {
-    display: block;
-}
-
-.section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.section-header h2 {
-    margin: 0;
-    font-size: 20px;
-}
-
-.section-header p {
-    margin: 5px 0 0;
-    color: var(--muted);
-    font-size: 13px;
-}
-
-/* =========================
-   FILTERS
-========================= */
-
-.filters {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 15px;
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    box-shadow: var(--shadow);
-    margin-bottom: 20px;
-}
-
-.filter {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.filter label {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--muted);
-}
-
-.filter select,
-.filter input {
-    height: 38px;
-    min-width: 150px;
-    border: 1px solid var(--border);
-    background: white;
-    border-radius: 9px;
-    padding: 0 10px;
-    outline: none;
-}
-
-.filter select:focus,
-.filter input:focus {
-    border-color: var(--primary);
-}
-
-/* =========================
-   KPI
-========================= */
-
-.kpi-grid {
-    display: grid;
-    grid-template-columns:
-        repeat(5, minmax(0, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.kpi {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px;
-    box-shadow: var(--shadow);
-}
-
-.kpi-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.kpi-label {
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 650;
-}
-
-.kpi-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 9px;
-    background: #eff6ff;
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.kpi-value {
-    font-size: 25px;
-    font-weight: 800;
-    margin-top: 13px;
-    letter-spacing: -.5px;
-}
-
-.kpi-foot {
-    margin-top: 6px;
-    font-size: 11px;
-    color: var(--muted);
-}
-
-.positive {
-    color: var(--success);
-}
-
-.negative {
-    color: var(--danger);
-}
-
-/* =========================
-   CARDS
-========================= */
-
-.grid-2 {
-    display: grid;
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-    gap: 18px;
-    margin-bottom: 18px;
-}
-
-.grid-3 {
-    display: grid;
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-    gap: 18px;
-    margin-bottom: 18px;
-}
-
-.card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-}
-
-.card-header {
-    padding: 17px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.card-title {
-    font-size: 14px;
-    font-weight: 750;
-}
-
-.card-subtitle {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 3px;
-}
-
-.card-body {
-    padding: 18px;
-}
-
-.chart-container {
-    height: 310px;
-    position: relative;
-}
-
-/* =========================
-   TABLE
-========================= */
-
-.table-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-}
-
-.table-wrapper {
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
-}
-
-th {
-    background: var(--surface-2);
-    color: #475569;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-    font-weight: 750;
-    padding: 12px 14px;
-    text-align: left;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border);
-}
-
-td {
-    padding: 12px 14px;
-    border-bottom: 1px solid #eef2f7;
-    white-space: nowrap;
-}
-
-tr:hover td {
-    background: #fafcff;
-}
-
-.stale-yes {
-    color: white;
-    background: var(--danger);
-    font-weight: 750;
-    border-radius: 6px;
-    padding: 4px 8px;
-    display: inline-block;
-}
-
-.stale-no {
-    color: var(--success);
-    background: #f0fdf4;
-    font-weight: 700;
-    border-radius: 6px;
-    padding: 4px 8px;
-    display: inline-block;
-}
-
-/* =========================
-   UPLOAD
-========================= */
-
-.upload-grid {
-    display: grid;
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-    gap: 18px;
-}
-
-.upload-box {
-    background: white;
-    border: 2px dashed #cbd5e1;
-    border-radius: 18px;
-    padding: 34px 24px;
-    text-align: center;
-    transition: .2s;
-}
-
-.upload-box:hover {
-    border-color: var(--primary);
-    background: #f8fbff;
-}
-
-.upload-icon {
-    font-size: 38px;
-    margin-bottom: 12px;
-}
-
-.upload-box h3 {
-    margin: 0;
-    font-size: 16px;
-}
-
-.upload-box p {
-    color: var(--muted);
-    font-size: 12px;
-}
-
-.file-input {
-    display: none;
-}
-
-.file-button {
-    display: inline-block;
-    background: #eff6ff;
-    color: var(--primary);
-    border: 1px solid #dbeafe;
-    border-radius: 9px;
-    padding: 9px 15px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.file-name {
-    margin-top: 13px;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-/* =========================
-   BUTTONS
-========================= */
-
-.btn {
-    border: 0;
-    border-radius: 9px;
-    padding: 10px 15px;
-    font-size: 12px;
-    font-weight: 700;
-    transition: .15s;
-}
-
-.btn-primary {
-    color: white;
-    background: var(--primary);
-}
-
-.btn-primary:hover {
-    background: var(--primary-dark);
-}
-
-.btn-secondary {
-    background: white;
-    color: #334155;
-    border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-    background: #f8fafc;
-}
-
-.btn-danger {
-    background: #fef2f2;
-    color: var(--danger);
-}
-
-.generate-area {
-    margin-top: 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.status {
-    font-size: 12px;
-    color: var(--muted);
-}
-
-.status.success {
-    color: var(--success);
-}
-
-.status.error {
-    color: var(--danger);
-}
-
-/* =========================
-   HISTORY
-========================= */
-
-.history-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.history-item {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-}
-
-.history-date {
-    font-weight: 750;
-}
-
-.history-meta {
-    color: var(--muted);
-    font-size: 11px;
-    margin-top: 4px;
-}
-
-/* =========================
-   COMPARISON
-========================= */
-
-.comparison-grid {
-    display: grid;
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-    gap: 14px;
-}
-
-.comparison-card {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    padding: 15px;
-}
-
-.comparison-label {
-    font-size: 11px;
-    color: var(--muted);
-}
-
-.comparison-values {
-    display: flex;
-    align-items: baseline;
-    gap: 9px;
-    margin-top: 8px;
-}
-
-.current-value {
-    font-size: 20px;
-    font-weight: 800;
-}
-
-.previous-value {
-    font-size: 11px;
-    color: var(--muted);
-}
-
-.change {
-    margin-top: 8px;
-    font-size: 11px;
-    font-weight: 750;
-}
-
-/* =========================
-   EMPTY / LOADING
-========================= */
-
-.loading {
-    padding: 45px;
-    text-align: center;
-    color: var(--muted);
-}
-
-.spinner {
-    width: 26px;
-    height: 26px;
-    border: 3px solid #dbeafe;
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin .8s linear infinite;
-    margin: 0 auto 12px;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.empty {
-    padding: 40px;
-    text-align: center;
-    color: var(--muted);
-}
-
-/* =========================
-   TOAST
-========================= */
-
-.toast {
-    position: fixed;
-    right: 22px;
-    bottom: 22px;
-    z-index: 100;
-    background: #0f172a;
-    color: white;
-    border-radius: 11px;
-    padding: 13px 16px;
-    font-size: 12px;
-    box-shadow: 0 15px 40px rgba(0,0,0,.18);
-    transform: translateY(100px);
-    opacity: 0;
-    transition: .25s;
-}
-
-.toast.show {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media(max-width:1200px) {
-
-    .kpi-grid {
-        grid-template-columns:
-            repeat(3, minmax(0,1fr));
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AM Master Script — Manager Dashboard</title>
+
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #697386;
+      --border: #e5e9f0;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --shadow: 0 4px 18px rgba(15, 23, 42, .06);
+      --radius: 14px;
     }
 
-}
-
-@media(max-width:900px) {
-
-    .sidebar {
-        width: 70px;
-        padding: 16px 9px;
+    * {
+      box-sizing: border-box;
     }
 
-    .logo-title,
-    .logo-subtitle,
-    .nav-text {
-        display: none;
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
     }
 
-    .logo {
-        justify-content: center;
-        padding-bottom: 20px;
+    button,
+    select,
+    input {
+      font: inherit;
     }
 
-    .nav button {
-        justify-content: center;
+    .app {
+      min-height: 100vh;
     }
+
+    /* HEADER */
+
+    .header {
+      height: 72px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .brand-title {
+      font-weight: 750;
+      font-size: 17px;
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .date-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 6px 10px;
+    }
+
+    .date-control label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .date-control input {
+      border: 0;
+      background: transparent;
+      outline: none;
+      color: var(--text);
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 9px;
+      padding: 9px 13px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .btn:hover {
+      background: #f8fafc;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    /* MAIN */
 
     .main {
-        margin-left: 70px;
-        width: calc(100% - 70px);
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 26px 32px 50px;
     }
 
-    .grid-2,
-    .grid-3,
-    .upload-grid {
-        grid-template-columns: 1fr;
+    .page-title {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 22px;
     }
 
-    .comparison-grid {
-        grid-template-columns:
-            repeat(2,1fr);
+    .page-title h1 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: -.5px;
     }
 
-}
-
-@media(max-width:600px) {
-
-    .content {
-        padding: 15px;
+    .page-title p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
     }
 
-    .topbar {
-        padding: 0 15px;
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
     }
 
-    .kpi-grid {
-        grid-template-columns:
-            repeat(2, minmax(0,1fr));
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .status-dot.error {
+      background: var(--danger);
+    }
+
+    .status-dot.loading {
+      background: var(--warning);
+    }
+
+    /* KPI */
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 18px;
+      min-height: 125px;
+    }
+
+    .kpi-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .kpi-value {
-        font-size: 20px;
+      font-size: 28px;
+      font-weight: 800;
+      margin-top: 12px;
+      letter-spacing: -.7px;
     }
 
-    .comparison-grid {
+    .kpi-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .kpi.danger .kpi-value {
+      color: var(--danger);
+    }
+
+    .kpi.success .kpi-value {
+      color: var(--success);
+    }
+
+    .kpi.warning .kpi-value {
+      color: var(--warning);
+    }
+
+    /* GRID */
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 17px 19px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .card-title {
+      font-weight: 750;
+      font-size: 14px;
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .card-body {
+      padding: 18px;
+    }
+
+    /* BAR CHART */
+
+    .chart-row {
+      margin-bottom: 15px;
+    }
+
+    .chart-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .chart-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+
+    .chart-label span:last-child {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .bar-track {
+      height: 9px;
+      border-radius: 99px;
+      background: #eef2f7;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2563eb, #6366f1);
+      min-width: 3px;
+    }
+
+    .bar.danger {
+      background: linear-gradient(90deg, #dc2626, #ef4444);
+    }
+
+    .bar.success {
+      background: linear-gradient(90deg, #16a34a, #22c55e);
+    }
+
+    /* TABLE */
+
+    .table-toolbar {
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      align-items: center;
+    }
+
+    .search {
+      min-width: 250px;
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 9px 11px;
+      outline: none;
+      background: #fff;
+      font-size: 13px;
+    }
+
+    .search:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .08);
+    }
+
+    .filter {
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 9px 11px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      font-size: 12px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      max-height: 580px;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1050px;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
+      z-index: 2;
+      text-align: left;
+      padding: 11px 13px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 13px;
+      font-size: 12px;
+      border-bottom: 1px solid #edf0f4;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background: #fafcff;
+    }
+
+    tbody tr.stale-row {
+      background: #fff1f2;
+    }
+
+    tbody tr.stale-row:hover {
+      background: #ffe4e6;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-danger {
+      color: #b91c1c;
+      background: #fee2e2;
+    }
+
+    .badge-success {
+      color: #166534;
+      background: #dcfce7;
+    }
+
+    .badge-neutral {
+      color: #475569;
+      background: #f1f5f9;
+    }
+
+    /* EMPTY / LOADING */
+
+    .empty {
+      padding: 50px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-icon {
+      font-size: 35px;
+      margin-bottom: 10px;
+    }
+
+    .loading {
+      padding: 45px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid #e5e7eb;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ERROR */
+
+    .error-box {
+      display: none;
+      background: var(--danger-light);
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      font-size: 13px;
+    }
+
+    /* FOOTER */
+
+    .footer {
+      margin-top: 25px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 1200px) {
+      .kpis {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .grid-3 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 800px) {
+      .header {
+        height: auto;
+        padding: 15px;
+        gap: 15px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .header-right {
+        justify-content: space-between;
+      }
+
+      .main {
+        padding: 20px 15px 40px;
+      }
+
+      .kpis,
+      .grid-2,
+      .grid-3 {
         grid-template-columns: 1fr;
+      }
+
+      .page-title {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
-
-}
-
-</style>
+  </style>
 </head>
 
 <body>
 
 <div class="app">
 
-<!-- =========================
-     SIDEBAR
-========================= -->
+  <!-- HEADER -->
+  <header class="header">
 
-<aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">AM</div>
 
-    <div class="logo">
+      <div>
+        <div class="brand-title">AM Master Script</div>
+        <div class="brand-subtitle">Manager Dashboard</div>
+      </div>
+    </div>
 
-        <div class="logo-icon">
-            AM
-        </div>
+    <div class="header-right">
 
-        <div>
-            <div class="logo-title">
-                AM Master Script
-            </div>
+      <div class="date-control">
+        <label>Date</label>
+        <input
+          type="date"
+          id="datePicker"
+        />
+      </div>
 
-            <div class="logo-subtitle">
-                Manager Portal
-            </div>
-        </div>
+      <button
+        class="btn"
+        onclick="loadPreviousDay()"
+      >
+        ← Previous
+      </button>
+
+      <button
+        class="btn btn-primary"
+        onclick="loadDashboard()"
+      >
+        ↻ Refresh
+      </button>
 
     </div>
 
-    <nav class="nav">
+  </header>
 
-        <button
-            class="active"
-            onclick="showSection('dashboard', this)"
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <div class="page-title">
+
+      <div>
+        <h1>Pipeline Overview</h1>
+        <p id="dashboardDate">Loading dashboard...</p>
+      </div>
+
+      <div class="status">
+        <span
+          class="status-dot loading"
+          id="statusDot"
+        ></span>
+
+        <span id="statusText">
+          Loading...
+        </span>
+      </div>
+
+    </div>
+
+
+    <!-- ERROR -->
+    <div
+      class="error-box"
+      id="errorBox"
+    ></div>
+
+
+    <!-- KPI CARDS -->
+
+    <section class="kpis">
+
+      <div class="kpi">
+        <div class="kpi-label">
+          TOTAL OPPORTUNITIES
+        </div>
+
+        <div
+          class="kpi-value"
+          id="totalOpps"
         >
-            <span class="nav-icon">▦</span>
-            <span class="nav-text">Dashboard</span>
-        </button>
+          —
+        </div>
 
-        <button
-            onclick="showSection('upload', this)"
+        <div class="kpi-meta">
+          Consolidated pipeline
+        </div>
+      </div>
+
+
+      <div class="kpi">
+        <div class="kpi-label">
+          TOTAL PIPELINE
+        </div>
+
+        <div
+          class="kpi-value"
+          id="totalPipeline"
         >
-            <span class="nav-icon">↑</span>
-            <span class="nav-text">Upload Reports</span>
-        </button>
+          —
+        </div>
 
-        <button
-            onclick="showSection('history', this)"
+        <div class="kpi-meta">
+          Opportunity value
+        </div>
+      </div>
+
+
+      <div class="kpi danger">
+        <div class="kpi-label">
+          STALE OPPORTUNITIES
+        </div>
+
+        <div
+          class="kpi-value"
+          id="staleOpps"
         >
-            <span class="nav-icon">◷</span>
-            <span class="nav-text">History</span>
-        </button>
-
-    </nav>
-
-</aside>
-
-
-<!-- =========================
-     MAIN
-========================= -->
-
-<main class="main">
-
-    <header class="topbar">
-
-        <div>
-
-            <div
-                class="page-title"
-                id="pageTitle"
-            >
-                Manager Dashboard
-            </div>
-
-            <div
-                class="page-subtitle"
-                id="pageSubtitle"
-            >
-                AM pipeline overview and performance
-            </div>
-
+          —
         </div>
 
-        <div class="manager-pill">
-            Manager View
+        <div class="kpi-meta">
+          Requires attention
+        </div>
+      </div>
+
+
+      <div class="kpi warning">
+        <div class="kpi-label">
+          STALE %
         </div>
 
-    </header>
-
-
-    <div class="content">
-
-
-<!-- =====================================================
-     DASHBOARD
-===================================================== -->
-
-<section
-    id="dashboard"
-    class="section active"
->
-
-    <div class="section-header">
-
-        <div>
-
-            <h2>
-                Executive Overview
-            </h2>
-
-            <p id="dashboardDate">
-                Loading latest report...
-            </p>
-
-        </div>
-
-        <button
-            class="btn btn-secondary"
-            onclick="refreshDashboard()"
+        <div
+          class="kpi-value"
+          id="stalePercent"
         >
-            ↻ Refresh
-        </button>
-
-    </div>
-
-
-    <!-- FILTERS -->
-
-    <div class="filters">
-
-        <div class="filter">
-
-            <label>
-                Report Date
-            </label>
-
-            <select
-                id="dashboardDateSelect"
-                onchange="loadSelectedDate()"
-            >
-            </select>
-
+          —
         </div>
 
+        <div class="kpi-meta">
+          Of total opportunities
+        </div>
+      </div>
 
-        <div class="filter">
 
-            <label>
-                AM
-            </label>
-
-            <select
-                id="amFilter"
-                onchange="applyFilters()"
-            >
-
-                <option value="">
-                    All AMs
-                </option>
-
-            </select>
-
+      <div class="kpi success">
+        <div class="kpi-label">
+          ACCOUNT MANAGERS
         </div>
 
-
-        <div class="filter">
-
-            <label>
-                Stage
-            </label>
-
-            <select
-                id="stageFilter"
-                onchange="applyFilters()"
-            >
-
-                <option value="">
-                    All Stages
-                </option>
-
-            </select>
-
+        <div
+          class="kpi-value"
+          id="amCount"
+        >
+          —
         </div>
 
-
-        <div class="filter">
-
-            <label>
-                Stale
-            </label>
-
-            <select
-                id="staleFilter"
-                onchange="applyFilters()"
-            >
-
-                <option value="">
-                    All
-                </option>
-
-                <option value="YES">
-                    Stale
-                </option>
-
-                <option value="NO">
-                    Non-Stale
-                </option>
-
-            </select>
-
+        <div class="kpi-meta">
+          Active AMs
         </div>
+      </div>
 
+    </section>
 
-        <div class="filter">
 
-            <label>
-                Search
-            </label>
+    <!-- AM + STAGE -->
 
-            <input
-                id="searchFilter"
-                placeholder="Opportunity / Account..."
-                oninput="applyFilters()"
-            >
+    <section class="grid-2">
 
-        </div>
-
-    </div>
-
-
-    <!-- KPI -->
-
-    <div class="kpi-grid">
-
-        <div class="kpi">
-
-            <div class="kpi-top">
-
-                <div class="kpi-label">
-                    Total Pipeline
-                </div>
-
-                <div class="kpi-icon">
-                    ₹
-                </div>
-
-            </div>
-
-            <div
-                class="kpi-value"
-                id="kpiPipeline"
-            >
-                —
-            </div>
-
-            <div
-                class="kpi-foot"
-                id="kpiPipelineFoot"
-            >
-                Current report
-            </div>
-
-        </div>
-
-
-        <div class="kpi">
-
-            <div class="kpi-top">
-
-                <div class="kpi-label">
-                    Opportunities
-                </div>
-
-                <div class="kpi-icon">
-                    #
-                </div>
-
-            </div>
-
-            <div
-                class="kpi-value"
-                id="kpiOpps"
-            >
-                —
-            </div>
-
-            <div class="kpi-foot">
-                Active opportunities
-            </div>
-
-        </div>
-
-
-        <div class="kpi">
-
-            <div class="kpi-top">
-
-                <div class="kpi-label">
-                    Stale Opportunities
-                </div>
-
-                <div
-                    class="kpi-icon"
-                    style="background:#fef2f2;color:#dc2626"
-                >
-                    !
-                </div>
-
-            </div>
-
-            <div
-                class="kpi-value"
-                id="kpiStale"
-            >
-                —
-            </div>
-
-            <div
-                class="kpi-foot"
-                id="kpiStaleFoot"
-            >
-                —
-            </div>
-
-        </div>
-
-
-        <div class="kpi">
-
-            <div class="kpi-top">
-
-                <div class="kpi-label">
-                    Stale %
-                </div>
-
-                <div class="kpi-icon">
-                    %
-                </div>
-
-            </div>
-
-            <div
-                class="kpi-value"
-                id="kpiStalePct"
-            >
-                —
-            </div>
-
-            <div class="kpi-foot">
-                Of total opportunities
-            </div>
-
-        </div>
-
-
-        <div class="kpi">
-
-            <div class="kpi-top">
-
-                <div class="kpi-label">
-                    Average Age
-                </div>
-
-                <div class="kpi-icon">
-                    ◷
-                </div>
-
-            </div>
-
-            <div
-                class="kpi-value"
-                id="kpiAge"
-            >
-                —
-            </div>
-
-            <div class="kpi-foot">
-                Days
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- CHARTS -->
-
-    <div class="grid-2">
-
-        <div class="card">
-
-            <div class="card-header">
-
-                <div>
-
-                    <div class="card-title">
-                        Pipeline by AM
-                    </div>
-
-                    <div class="card-subtitle">
-                        Pipeline contribution by account manager
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="card-body">
-
-                <div class="chart-container">
-                    <canvas id="amChart"></canvas>
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="card">
-
-            <div class="card-header">
-
-                <div>
-
-                    <div class="card-title">
-                        Stale Analysis
-                    </div>
-
-                    <div class="card-subtitle">
-                        Current pipeline health
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="card-body">
-
-                <div class="chart-container">
-                    <canvas id="staleChart"></canvas>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="grid-2">
-
-        <div class="card">
-
-            <div class="card-header">
-
-                <div>
-
-                    <div class="card-title">
-                        Pipeline by Stage
-                    </div>
-
-                    <div class="card-subtitle">
-                        Distribution across opportunity stages
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="card-body">
-
-                <div class="chart-container">
-                    <canvas id="stageChart"></canvas>
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="card">
-
-            <div class="card-header">
-
-                <div>
-
-                    <div class="card-title">
-                        Close Date Outlook
-                    </div>
-
-                    <div class="card-subtitle">
-                        Opportunity distribution
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="card-body">
-
-                <div class="chart-container">
-                    <canvas id="closeChart"></canvas>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- AM TABLE -->
-
-    <div class="table-card">
+      <div class="card">
 
         <div class="card-header">
 
-            <div>
-
-                <div class="card-title">
-                    AM Performance
-                </div>
-
-                <div class="card-subtitle">
-                    Performance summary by account manager
-                </div>
-
+          <div>
+            <div class="card-title">
+              Pipeline by Account Manager
             </div>
+
+            <div class="card-subtitle">
+              Total opportunity value
+            </div>
+          </div>
 
         </div>
 
         <div
-            class="table-wrapper"
-            id="amTable"
+          class="card-body"
+          id="amChart"
         >
+          <div class="loading">
+            <div class="spinner"></div>
+            Loading...
+          </div>
         </div>
 
-    </div>
+      </div>
 
 
-    <br>
+      <div class="card">
+
+        <div class="card-header">
+
+          <div>
+            <div class="card-title">
+              Pipeline by Stage
+            </div>
+
+            <div class="card-subtitle">
+              Opportunity distribution
+            </div>
+          </div>
+
+        </div>
+
+        <div
+          class="card-body"
+          id="stageChart"
+        >
+          <div class="loading">
+            <div class="spinner"></div>
+            Loading...
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- STALE BY AM -->
+
+    <section class="card" style="margin-bottom:18px">
+
+      <div class="card-header">
+
+        <div>
+          <div class="card-title">
+            Stale Opportunities by AM
+          </div>
+
+          <div class="card-subtitle">
+            Accounts requiring follow-up
+          </div>
+        </div>
+
+      </div>
+
+      <div
+        class="card-body"
+        id="staleChart"
+      >
+        <div class="loading">
+          <div class="spinner"></div>
+          Loading...
+        </div>
+      </div>
+
+    </section>
 
 
     <!-- OPPORTUNITY TABLE -->
 
-    <div class="table-card">
+    <section class="card">
 
-        <div class="card-header">
-
-            <div>
-
-                <div class="card-title">
-                    Opportunities
-                </div>
-
-                <div class="card-subtitle">
-                    Filtered opportunity-level data
-                </div>
-
-            </div>
-
-        </div>
-
-        <div
-            class="table-wrapper"
-            id="opportunityTable"
-        >
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- =====================================================
-     UPLOAD
-===================================================== -->
-
-<section
-    id="upload"
-    class="section"
->
-
-    <div class="section-header">
+      <div class="card-header">
 
         <div>
+          <div class="card-title">
+            Consolidated Opportunities
+          </div>
 
-            <h2>
-                Generate Master Script
-            </h2>
-
-            <p>
-                Upload both source reports to generate the consolidated report.
-            </p>
-
+          <div class="card-subtitle">
+            All opportunities for selected date
+          </div>
         </div>
-
-    </div>
-
-
-    <div class="upload-grid">
-
-        <div class="upload-box">
-
-            <div class="upload-icon">
-                📄
-            </div>
-
-            <h3>
-                AM Stale Report
-            </h3>
-
-            <p>
-                Upload the latest AM stale opportunity Excel file.
-            </p>
-
-            <label class="file-button">
-
-                Choose Excel File
-
-                <input
-                    class="file-input"
-                    type="file"
-                    id="staleFile"
-                    accept=".xlsx,.xls,.csv"
-                    onchange="showFileName('staleFile','staleFileName')"
-                >
-
-            </label>
-
-            <div
-                class="file-name"
-                id="staleFileName"
-            >
-                No file selected
-            </div>
-
-        </div>
-
-
-        <div class="upload-box">
-
-            <div class="upload-icon">
-                📊
-            </div>
-
-            <h3>
-                Open Pipeline
-            </h3>
-
-            <p>
-                Upload the current open pipeline Excel file.
-            </p>
-
-            <label class="file-button">
-
-                Choose Excel File
-
-                <input
-                    class="file-input"
-                    type="file"
-                    id="pipelineFile"
-                    accept=".xlsx,.xls,.csv"
-                    onchange="showFileName('pipelineFile','pipelineFileName')"
-                >
-
-            </label>
-
-            <div
-                class="file-name"
-                id="pipelineFileName"
-            >
-                No file selected
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="generate-area">
-
-        <button
-            class="btn btn-primary"
-            id="generateButton"
-            onclick="generateReports()"
-        >
-            Generate Master Script
-        </button>
-
-        <div
-            id="generateStatus"
-            class="status"
-        >
-        </div>
-
-    </div>
-
-
-    <br>
-
-
-    <div
-        class="card"
-        id="generationResult"
-        style="display:none"
-    >
-
-        <div class="card-header">
-
-            <div class="card-title">
-                Generation Result
-            </div>
-
-        </div>
-
-        <div
-            class="card-body"
-            id="generationResultBody"
-        >
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- =====================================================
-     HISTORY
-===================================================== -->
-
-<section
-    id="history"
-    class="section"
->
-
-    <div class="section-header">
 
         <div>
-
-            <h2>
-                Historical Reports
-            </h2>
-
-            <p>
-                Review previous report snapshots saved in Google Drive.
-            </p>
-
+          <span
+            class="badge badge-danger"
+          >
+            RED = STALE
+          </span>
         </div>
 
-        <button
-            class="btn btn-secondary"
-            onclick="loadHistory()"
+      </div>
+
+
+      <div class="table-toolbar">
+
+        <input
+          class="search"
+          id="searchInput"
+          placeholder="Search opportunity, account, AM..."
+          oninput="renderOpportunityTable()"
+        />
+
+        <select
+          class="filter"
+          id="amFilter"
+          onchange="renderOpportunityTable()"
         >
-            ↻ Refresh
-        </button>
+          <option value="">All AMs</option>
+        </select>
 
-    </div>
-
-
-    <div class="card">
-
-        <div class="card-header">
-
-            <div class="card-title">
-                Report History
-            </div>
-
-        </div>
-
-        <div
-            class="card-body"
-            id="historyList"
+        <select
+          class="filter"
+          id="stageFilter"
+          onchange="renderOpportunityTable()"
         >
-            <div class="loading">
+          <option value="">All stages</option>
+        </select>
 
-                <div class="spinner"></div>
+        <select
+          class="filter"
+          id="staleFilter"
+          onchange="renderOpportunityTable()"
+        >
+          <option value="">All status</option>
+          <option value="stale">Stale only</option>
+          <option value="fresh">Fresh only</option>
+        </select>
 
-                Loading history...
+      </div>
 
-            </div>
+
+      <div
+        class="table-wrapper"
+        id="tableContainer"
+      >
+
+        <div class="loading">
+          <div class="spinner"></div>
+          Loading opportunities...
         </div>
 
+      </div>
+
+    </section>
+
+
+    <div class="footer">
+      AM Master Script • Manager Dashboard
     </div>
 
+  </main>
 
-    <br>
-
-
-    <div class="card">
-
-        <div class="card-header">
-
-            <div>
-
-                <div class="card-title">
-                    Date Comparison
-                </div>
-
-                <div class="card-subtitle">
-                    Compare two historical snapshots
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="card-body">
-
-            <div class="filters">
-
-                <div class="filter">
-
-                    <label>
-                        Current
-                    </label>
-
-                    <select
-                        id="compareCurrent"
-                        onchange="runComparison()"
-                    >
-                    </select>
-
-                </div>
-
-
-                <div class="filter">
-
-                    <label>
-                        Previous
-                    </label>
-
-                    <select
-                        id="comparePrevious"
-                        onchange="runComparison()"
-                    >
-                    </select>
-
-                </div>
-
-            </div>
-
-
-            <div
-                class="comparison-grid"
-                id="comparisonGrid"
-            >
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-    </div>
-
-</main>
-
-</div>
-
-
-<div
-    class="toast"
-    id="toast"
->
 </div>
 
 
 <script>
 
-/* =========================================================
-   CONFIG
-========================================================= */
+  /*
+   * ============================================================
+   * CONFIGURATION
+   * ============================================================
+   */
 
-const GAS_URL =
+  const API_URL =
     "https://script.google.com/macros/s/AKfycbx3qW2bLf9aec5FYUoJRuv87X10VvzRFSFHZL5YDfjFCGmoK3If5tT_sUZzqAVkgKKe/exec";
 
 
-let currentSnapshot = null;
+  /*
+   * ============================================================
+   * GLOBAL STATE
+   * ============================================================
+   */
 
-let historyData = [];
+  let dashboardData = null;
 
-let filteredOpportunities = [];
-
-let charts = {};
-
-
-/* =========================================================
-   INITIALIZE
-========================================================= */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    async function() {
-
-        await loadHistory();
-
-    }
-);
+  let currentDate = null;
 
 
-/* =========================================================
-   NAVIGATION
-========================================================= */
+  /*
+   * ============================================================
+   * INITIAL LOAD
+   * ============================================================
+   */
 
-function showSection(
-    sectionId,
-    button
-) {
+  document.addEventListener("DOMContentLoaded", () => {
 
-    document
-        .querySelectorAll(".section")
-        .forEach(
-            section => {
-                section.classList.remove(
-                    "active"
-                );
-            }
-        );
+    const today =
+      new Date();
 
+    const date =
+      today.toISOString().split("T")[0];
 
-    document
-        .getElementById(
-            sectionId
-        )
-        .classList.add(
-            "active"
-        );
+    currentDate = date;
+
+    document.getElementById("datePicker").value =
+      date;
+
+    loadDashboard();
+
+  });
 
 
-    document
-        .querySelectorAll(".nav button")
-        .forEach(
-            btn => {
-                btn.classList.remove(
-                    "active"
-                );
-            }
-        );
+  /*
+   * ============================================================
+   * LOAD DASHBOARD
+   * ============================================================
+   */
 
+  async function loadDashboard() {
 
-    button.classList.add(
-        "active"
+    hideError();
+
+    setStatus(
+      "loading",
+      "Loading dashboard..."
     );
 
+    const picker =
+      document.getElementById("datePicker");
 
-    const titles = {
+    const date =
+      picker.value;
 
-        dashboard: [
-            "Manager Dashboard",
-            "AM pipeline overview and performance"
-        ],
+    currentDate = date;
 
-        upload: [
-            "Generate Master Script",
-            "Upload reports and generate consolidated outputs"
-        ],
+    showLoading();
 
-        history: [
-            "Historical Reports",
-            "Review previous report snapshots"
-        ]
+    try {
+
+      /*
+       * IMPORTANT:
+       * Apps Script API is called with:
+       *
+       * ?action=dashboard&date=YYYY-MM-DD
+       */
+
+      const url =
+        API_URL +
+        "?action=dashboard&date=" +
+        encodeURIComponent(date) +
+        "&_=" +
+        Date.now();
+
+
+      const response =
+        await fetch(url, {
+          method: "GET",
+          cache: "no-store"
+        });
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          "API returned HTTP " +
+          response.status
+        );
+
+      }
+
+
+      const result =
+        await response.json();
+
+
+      console.log(
+        "Dashboard API response:",
+        result
+      );
+
+
+      if (!result) {
+
+        throw new Error(
+          "Empty response from Apps Script."
+        );
+
+      }
+
+
+      if (result.ok === false) {
+
+        throw new Error(
+          result.error ||
+          result.message ||
+          "Apps Script returned an error."
+        );
+
+      }
+
+
+      /*
+       * Expected response:
+       *
+       * {
+       *   ok: true,
+       *   snapshot: {
+       *      summary: {},
+       *      ams: [],
+       *      stages: [],
+       *      opportunities: []
+       *   }
+       * }
+       */
+
+
+      const snapshot =
+        result.snapshot ||
+        result.data ||
+        result;
+
+
+      if (!snapshot) {
+
+        throw new Error(
+          "Dashboard snapshot is missing."
+        );
+
+      }
+
+
+      dashboardData =
+        normalizeSnapshot(snapshot);
+
+
+      renderDashboard();
+
+
+      setStatus(
+        "success",
+        "Dashboard loaded"
+      );
+
+    }
+
+    catch (error) {
+
+      console.error(
+        "Dashboard load error:",
+        error
+      );
+
+      dashboardData = null;
+
+      showError(
+        "Unable to load dashboard: " +
+        error.message +
+        ". Open browser Developer Tools → Console to see the API response."
+      );
+
+      setStatus(
+        "error",
+        "Load failed"
+      );
+
+      renderEmpty();
+
+    }
+
+  }
+
+
+  /*
+   * ============================================================
+   * NORMALIZE SNAPSHOT
+   * ============================================================
+   *
+   * This deliberately accepts several possible property names
+   * so minor Apps Script naming differences don't break UI.
+   */
+
+  function normalizeSnapshot(snapshot) {
+
+    const summary =
+      snapshot.summary ||
+      snapshot.metrics ||
+      {};
+
+
+    const ams =
+      snapshot.ams ||
+      snapshot.AMs ||
+      snapshot.accountManagers ||
+      [];
+
+
+    const stages =
+      snapshot.stages ||
+      snapshot.pipelineByStage ||
+      [];
+
+
+    const opportunities =
+      snapshot.opportunities ||
+      snapshot.oppportunities ||
+      snapshot.data ||
+      [];
+
+
+    const accounts =
+      snapshot.accounts ||
+      [];
+
+
+    return {
+
+      ...snapshot,
+
+      summary,
+
+      ams: Array.isArray(ams)
+        ? ams
+        : [],
+
+      stages: Array.isArray(stages)
+        ? stages
+        : [],
+
+      opportunities: Array.isArray(opportunities)
+        ? opportunities
+        : [],
+
+      accounts: Array.isArray(accounts)
+        ? accounts
+        : []
 
     };
 
+  }
 
-    document.getElementById(
-        "pageTitle"
-    ).textContent =
-        titles[sectionId][0];
 
+  /*
+   * ============================================================
+   * RENDER EVERYTHING
+   * ============================================================
+   */
 
-    document.getElementById(
-        "pageSubtitle"
-    ).textContent =
-        titles[sectionId][1];
+  function renderDashboard() {
 
-}
+    if (!dashboardData) {
 
+      renderEmpty();
 
-/* =========================================================
-   HISTORY
-========================================================= */
-
-async function loadHistory() {
-
-    try {
-
-        const response =
-            await fetch(
-                GAS_URL +
-                "?action=history"
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !data.ok
-        ) {
-
-            throw new Error(
-                data.error ||
-                "Unable to load history."
-            );
-
-        }
-
-
-        historyData =
-            data.history ||
-            [];
-
-
-        populateDateSelectors();
-
-        renderHistory();
-
-
-        if (
-            historyData.length
-        ) {
-
-            await loadDashboard(
-                historyData[0].date
-            );
-
-            setupComparisonSelectors();
-
-        }
-
-    }
-
-    catch(error) {
-
-        console.error(
-            error
-        );
-
-
-        document.getElementById(
-            "historyList"
-        ).innerHTML =
-
-            `<div class="empty">
-                Unable to load report history.
-                <br><br>
-                ${escapeHtml(error.message)}
-            </div>`;
-
-    }
-
-}
-
-
-/* =========================================================
-   DATE SELECTORS
-========================================================= */
-
-function populateDateSelectors() {
-
-    const dashboardSelect =
-        document.getElementById(
-            "dashboardDateSelect"
-        );
-
-
-    dashboardSelect.innerHTML =
-        historyData
-            .map(
-                item =>
-                    `<option value="${escapeHtml(item.date)}">
-                        ${formatDate(item.date)}
-                    </option>`
-            )
-            .join("");
-
-
-}
-
-
-/* =========================================================
-   DASHBOARD DATE
-========================================================= */
-
-async function loadSelectedDate() {
-
-    const date =
-        document.getElementById(
-            "dashboardDateSelect"
-        ).value;
-
-
-    await loadDashboard(
-        date
-    );
-
-}
-
-
-/* =========================================================
-   LOAD DASHBOARD
-========================================================= */
-
-async function loadDashboard(
-    date
-) {
-
-    if (
-        !date
-    ) {
-
-        return;
-
-    }
-
-
-    try {
-
-        document.getElementById(
-            "dashboardDate"
-        ).textContent =
-            "Loading " +
-            formatDate(date) +
-            "...";
-
-
-        const response =
-            await fetch(
-                GAS_URL +
-                "?action=dashboard&date=" +
-                encodeURIComponent(date)
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !data.ok
-        ) {
-
-            throw new Error(
-                data.error ||
-                "Dashboard data unavailable."
-            );
-
-        }
-
-
-        currentSnapshot =
-            data.snapshot;
-
-
-        document.getElementById(
-            "dashboardDate"
-        ).textContent =
-            "Report date: " +
-            formatDate(
-                currentSnapshot.date
-            );
-
-
-        renderDashboard();
-
-
-    }
-
-    catch(error) {
-
-        console.error(
-            error
-        );
-
-
-        showToast(
-            error.message,
-            true
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   RENDER DASHBOARD
-========================================================= */
-
-function renderDashboard() {
-
-    if (
-        !currentSnapshot
-    ) {
-
-        return;
+      return;
 
     }
 
 
     renderKPIs();
 
-    populateFilters();
-
-    renderCharts();
-
-    renderAMTable();
-
-    applyFilters();
-
-}
-
-
-/* =========================================================
-   KPIs
-========================================================= */
-
-function renderKPIs() {
-
-    const summary =
-        currentSnapshot.summary;
-
-
-    document.getElementById(
-        "kpiPipeline"
-    ).textContent =
-        formatCurrency(
-            summary.totalPipeline
-        );
-
-
-    document.getElementById(
-        "kpiOpps"
-    ).textContent =
-        formatNumber(
-            summary.totalOpportunities
-        );
-
-
-    document.getElementById(
-        "kpiStale"
-    ).textContent =
-        formatNumber(
-            summary.staleOpportunities
-        );
-
-
-    document.getElementById(
-        "kpiStalePct"
-    ).textContent =
-        Number(
-            summary.stalePercentage || 0
-        ).toFixed(1) +
-        "%";
-
-
-    document.getElementById(
-        "kpiAge"
-    ).textContent =
-        Number(
-            summary.averageAge || 0
-        ).toFixed(1);
-
-
-    document.getElementById(
-        "kpiStaleFoot"
-    ).textContent =
-        summary.staleOpportunities +
-        " opportunities require attention";
-
-}
-
-
-/* =========================================================
-   FILTERS
-========================================================= */
-
-function populateFilters() {
-
-    const amSelect =
-        document.getElementById(
-            "amFilter"
-        );
-
-
-    const stageSelect =
-        document.getElementById(
-            "stageFilter"
-        );
-
-
-    const currentAM =
-        amSelect.value;
-
-
-    const currentStage =
-        stageSelect.value;
-
-
-    const ams =
-        currentSnapshot.ams ||
-        [];
-
-
-    const stages =
-        currentSnapshot.stages ||
-        [];
-
-
-    amSelect.innerHTML =
-        `<option value="">
-            All AMs
-        </option>` +
-        ams
-            .map(
-                item =>
-                    `<option value="${escapeHtml(item.name)}">
-                        ${escapeHtml(item.name)}
-                    </option>`
-            )
-            .join("");
-
-
-    stageSelect.innerHTML =
-        `<option value="">
-            All Stages
-        </option>` +
-        stages
-            .map(
-                item =>
-                    `<option value="${escapeHtml(item.stage)}">
-                        ${escapeHtml(item.stage)}
-                    </option>`
-            )
-            .join("");
-
-
-    if (
-        currentAM
-    ) {
-
-        amSelect.value =
-            currentAM;
-
-    }
-
-
-    if (
-        currentStage
-    ) {
-
-        stageSelect.value =
-            currentStage;
-
-    }
-
-}
-
-
-/* =========================================================
-   FILTER DATA
-========================================================= */
-
-function applyFilters() {
-
-    if (
-        !currentSnapshot
-    ) {
-
-        return;
-
-    }
-
-
-    const am =
-        document.getElementById(
-            "amFilter"
-        ).value;
-
-
-    const stage =
-        document.getElementById(
-            "stageFilter"
-        ).value;
-
-
-    const stale =
-        document.getElementById(
-            "staleFilter"
-        ).value;
-
-
-    const search =
-        document.getElementById(
-            "searchFilter"
-        ).value
-        .toLowerCase()
-        .trim();
-
-
-    filteredOpportunities =
-        (
-            currentSnapshot.opportunities ||
-            []
-        )
-        .filter(
-            item => {
-
-                if (
-                    am &&
-                    item.owner !== am
-                ) {
-
-                    return false;
-
-                }
-
-
-                if (
-                    stage &&
-                    item.stage !== stage
-                ) {
-
-                    return false;
-
-                }
-
-
-                if (
-                    stale &&
-                    (
-                        stale === "YES"
-                            ? !item.stale
-                            : item.stale
-                    )
-                ) {
-
-                    return false;
-
-                }
-
-
-                if (
-                    search
-                ) {
-
-                    const text =
-                        [
-                            item.opportunity,
-                            item.account,
-                            item.owner,
-                            item.stage
-                        ]
-                        .join(" ")
-                        .toLowerCase();
-
-
-                    if (
-                        !text.includes(
-                            search
-                        )
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                return true;
-
-            }
-        );
-
-
-    renderOpportunityTable(
-        filteredOpportunities
-    );
-
-}
-
-
-/* =========================================================
-   CHARTS
-========================================================= */
-
-function destroyChart(
-    name
-) {
-
-    if (
-        charts[name]
-    ) {
-
-        charts[name].destroy();
-
-    }
-
-}
-
-
-/* -------------------------
-   AM
-------------------------- */
-
-function renderCharts() {
-
     renderAMChart();
-
-    renderStaleChart();
 
     renderStageChart();
 
-    renderCloseChart();
+    renderStaleChart();
 
-}
+    populateFilters();
 
-
-/* =========================================================
-   AM CHART
-========================================================= */
-
-function renderAMChart() {
-
-    destroyChart(
-        "am"
-    );
+    renderOpportunityTable();
 
 
-    const ctx =
-        document
-            .getElementById(
-                "amChart"
-            )
-            .getContext(
-                "2d"
-            );
+    const dateText =
+      dashboardData.date ||
+      currentDate ||
+      "Selected date";
 
 
-    const data =
-        currentSnapshot.ams ||
-        [];
+    document.getElementById(
+      "dashboardDate"
+    ).textContent =
+      "Snapshot: " +
+      formatDate(dateText);
+
+  }
 
 
-    charts.am =
-        new Chart(
-            ctx,
-            {
+  /*
+   * ============================================================
+   * KPI
+   * ============================================================
+   */
 
-                type:
-                    "bar",
-
-                data: {
-
-                    labels:
-                        data.map(
-                            item =>
-                                item.name
-                        ),
-
-                    datasets: [
-
-                        {
-
-                            label:
-                                "Pipeline",
-
-                            data:
-                                data.map(
-                                    item =>
-                                        item.pipeline
-                                ),
-
-                            borderWidth:
-                                0,
-
-                            borderRadius:
-                                6
-
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    responsive:
-                        true,
-
-                    maintainAspectRatio:
-                        false,
-
-                    plugins: {
-
-                        legend: {
-                            display:
-                                false
-                        },
-
-                        tooltip: {
-
-                            callbacks: {
-
-                                label:
-                                    function(
-                                        context
-                                    ) {
-
-                                        return (
-                                            " " +
-                                            formatCurrency(
-                                                context.raw
-                                            )
-                                        );
-
-                                    }
-
-                            }
-
-                        }
-
-                    },
-
-                    scales: {
-
-                        y: {
-
-                            beginAtZero:
-                                true,
-
-                            ticks: {
-
-                                callback:
-                                    function(
-                                        value
-                                    ) {
-
-                                        return formatCompactCurrency(
-                                            value
-                                        );
-
-                                    }
-
-                            }
-
-                        },
-
-                        x: {
-
-                            ticks: {
-
-                                maxRotation:
-                                    35,
-
-                                minRotation:
-                                    0
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   STALE CHART
-========================================================= */
-
-function renderStaleChart() {
-
-    destroyChart(
-        "stale"
-    );
-
-
-    const ctx =
-        document
-            .getElementById(
-                "staleChart"
-            )
-            .getContext(
-                "2d"
-            );
-
+  function renderKPIs() {
 
     const summary =
-        currentSnapshot.summary;
+      dashboardData.summary || {};
 
 
-    charts.stale =
-        new Chart(
-            ctx,
-            {
+    const opportunities =
+      dashboardData.opportunities || [];
 
-                type:
-                    "doughnut",
 
-                data: {
+    const totalOpps =
+      firstNumber(
+        summary.totalOpportunities,
+        summary.totalOpps,
+        summary.opportunityCount,
+        opportunities.length
+      );
 
-                    labels: [
-                        "Stale",
-                        "Non-Stale"
-                    ],
 
-                    datasets: [
+    const stale =
+      firstNumber(
+        summary.staleOpportunities,
+        summary.staleOpps,
+        summary.staleCount,
+        opportunities.filter(isStale).length
+      );
 
-                        {
 
-                            data: [
+    const pipeline =
+      firstNumber(
+        summary.totalPipeline,
+        summary.pipeline,
+        summary.pipelineValue,
+        sumPipeline(opportunities)
+      );
 
-                                summary.staleOpportunities,
 
-                                Math.max(
-                                    0,
-                                    summary.totalOpportunities -
-                                    summary.staleOpportunities
-                                )
+    const stalePercent =
+      totalOpps > 0
+        ? (stale / totalOpps) * 100
+        : 0;
 
-                            ],
 
-                            borderWidth:
-                                0
-
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    responsive:
-                        true,
-
-                    maintainAspectRatio:
-                        false,
-
-                    cutout:
-                        "70%",
-
-                    plugins: {
-
-                        legend: {
-
-                            position:
-                                "bottom"
-
-                        }
-
-                    }
-
-                }
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   STAGE CHART
-========================================================= */
-
-function renderStageChart() {
-
-    destroyChart(
-        "stage"
-    );
-
-
-    const ctx =
-        document
-            .getElementById(
-                "stageChart"
-            )
-            .getContext(
-                "2d"
-            );
-
-
-    const data =
-        currentSnapshot.stages ||
-        [];
-
-
-    charts.stage =
-        new Chart(
-            ctx,
-            {
-
-                type:
-                    "bar",
-
-                data: {
-
-                    labels:
-                        data.map(
-                            item =>
-                                item.stage
-                        ),
-
-                    datasets: [
-
-                        {
-
-                            label:
-                                "Pipeline",
-
-                            data:
-                                data.map(
-                                    item =>
-                                        item.pipeline
-                                ),
-
-                            borderRadius:
-                                6,
-
-                            borderWidth:
-                                0
-
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    indexAxis:
-                        "y",
-
-                    responsive:
-                        true,
-
-                    maintainAspectRatio:
-                        false,
-
-                    plugins: {
-
-                        legend: {
-                            display:
-                                false
-                        }
-
-                    },
-
-                    scales: {
-
-                        x: {
-
-                            ticks: {
-
-                                callback:
-                                    function(
-                                        value
-                                    ) {
-
-                                        return formatCompactCurrency(
-                                            value
-                                        );
-
-                                    }
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   CLOSE CHART
-========================================================= */
-
-function renderCloseChart() {
-
-    destroyChart(
-        "close"
-    );
-
-
-    const ctx =
-        document
-            .getElementById(
-                "closeChart"
-            )
-            .getContext(
-                "2d"
-            );
-
-
-    const data =
-        currentSnapshot.closeDates ||
-        [];
-
-
-    charts.close =
-        new Chart(
-            ctx,
-            {
-
-                type:
-                    "bar",
-
-                data: {
-
-                    labels:
-                        data.map(
-                            item =>
-                                item.bucket
-                        ),
-
-                    datasets: [
-
-                        {
-
-                            label:
-                                "Opportunities",
-
-                            data:
-                                data.map(
-                                    item =>
-                                        item.opportunities
-                                ),
-
-                            borderRadius:
-                                6,
-
-                            borderWidth:
-                                0
-
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    responsive:
-                        true,
-
-                    maintainAspectRatio:
-                        false,
-
-                    plugins: {
-
-                        legend: {
-                            display:
-                                false
-                        }
-
-                    },
-
-                    scales: {
-
-                        y: {
-
-                            beginAtZero:
-                                true,
-
-                            ticks: {
-
-                                precision:
-                                    0
-
-                            }
-
-                        }
-
-                    }
-
-                }
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   AM TABLE
-========================================================= */
-
-function renderAMTable() {
-
-    const container =
-        document.getElementById(
-            "amTable"
-        );
-
-
-    const data =
-        currentSnapshot.ams ||
-        [];
-
-
-    if (
-        !data.length
-    ) {
-
-        container.innerHTML =
-            `<div class="empty">
-                No AM data available.
-            </div>`;
-
-        return;
-
-    }
-
-
-    container.innerHTML = `
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>AM</th>
-
-                    <th>Opportunities</th>
-
-                    <th>Pipeline</th>
-
-                    <th>Stale</th>
-
-                    <th>Stale %</th>
-
-                    <th>Average Age</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                ${data.map(
-                    item => `
-
-                    <tr>
-
-                        <td>
-                            <strong>
-                                ${escapeHtml(item.name)}
-                            </strong>
-                        </td>
-
-                        <td>
-                            ${formatNumber(
-                                item.opportunities
-                            )}
-                        </td>
-
-                        <td>
-                            ${formatCurrency(
-                                item.pipeline
-                            )}
-                        </td>
-
-                        <td>
-                            ${formatNumber(
-                                item.stale
-                            )}
-                        </td>
-
-                        <td>
-                            ${Number(
-                                item.stalePercentage || 0
-                            ).toFixed(1)}%
-                        </td>
-
-                        <td>
-                            ${Number(
-                                item.averageAge || 0
-                            ).toFixed(1)} days
-                        </td>
-
-                    </tr>
-
-                `
-                ).join("")}
-
-            </tbody>
-
-        </table>
-
-    `;
-
-}
-
-
-/* =========================================================
-   OPPORTUNITY TABLE
-========================================================= */
-
-function renderOpportunityTable(
-    data
-) {
-
-    const container =
-        document.getElementById(
-            "opportunityTable"
-        );
-
-
-    if (
-        !data.length
-    ) {
-
-        container.innerHTML =
-            `<div class="empty">
-                No opportunities match your filters.
-            </div>`;
-
-        return;
-
-    }
-
-
-    const visible =
-        data.slice(
-            0,
-            500
-        );
-
-
-    container.innerHTML = `
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>Opportunity</th>
-
-                    <th>Account</th>
-
-                    <th>AM</th>
-
-                    <th>Stage</th>
-
-                    <th>Amount</th>
-
-                    <th>Close Date</th>
-
-                    <th>Age</th>
-
-                    <th>Stale</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                ${visible.map(
-                    item => `
-
-                    <tr>
-
-                        <td>
-                            <strong>
-                                ${escapeHtml(
-                                    item.opportunity || "-"
-                                )}
-                            </strong>
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.account || "-"
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.owner || "-"
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.stage || "-"
-                            )}
-                        </td>
-
-                        <td>
-                            ${formatCurrency(
-                                item.amount
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.closeDate || "-"
-                            )}
-                        </td>
-
-                        <td>
-                            ${
-                                item.age
-                                    ? Number(item.age).toFixed(0)
-                                    : "-"
-                            }
-                        </td>
-
-                        <td>
-
-                            ${
-                                item.stale
-
-                                    ? `<span class="stale-yes">
-                                        YES
-                                      </span>`
-
-                                    : `<span class="stale-no">
-                                        NO
-                                      </span>`
-                            }
-
-                        </td>
-
-                    </tr>
-
-                `
-                ).join("")}
-
-            </tbody>
-
-        </table>
-
-        ${
-            data.length > 500
-                ? `<div
-                    style="
-                    padding:12px;
-                    text-align:center;
-                    color:#64748b;
-                    font-size:11px
-                    "
-                   >
-                    Showing first 500 of
-                    ${formatNumber(data.length)}
-                    opportunities.
-                  </div>`
-                : ""
-        }
-
-    `;
-
-}
-
-
-/* =========================================================
-   HISTORY UI
-========================================================= */
-
-function renderHistory() {
-
-    const container =
-        document.getElementById(
-            "historyList"
-        );
-
-
-    if (
-        !historyData.length
-    ) {
-
-        container.innerHTML =
-            `<div class="empty">
-                No historical reports found.
-            </div>`;
-
-        return;
-
-    }
-
-
-    container.innerHTML = `
-
-        <div class="history-list">
-
-            ${historyData.map(
-                item => `
-
-                <div class="history-item">
-
-                    <div>
-
-                        <div class="history-date">
-                            ${formatDate(
-                                item.date
-                            )}
-                        </div>
-
-                        <div class="history-meta">
-                            Snapshot saved:
-                            ${formatDateTime(
-                                item.modifiedTime
-                            )}
-                        </div>
-
-                    </div>
-
-                    <button
-                        class="btn btn-primary"
-                        onclick="openHistorical('${escapeJs(item.date)}')"
-                    >
-                        View Report
-                    </button>
-
-                </div>
-
-            `
-            ).join("")}
-
-        </div>
-
-    `;
-
-}
-
-
-/* =========================================================
-   OPEN HISTORICAL
-========================================================= */
-
-async function openHistorical(
-    date
-) {
-
-    document
-        .querySelectorAll(
-            ".nav button"
-        )[0]
-        .click();
+    const amCount =
+      firstNumber(
+        summary.amCount,
+        summary.accountManagerCount,
+        dashboardData.ams.length
+      );
 
 
     document.getElementById(
-        "dashboardDateSelect"
-    ).value =
-        date;
-
-
-    await loadDashboard(
-        date
-    );
-
-}
-
-
-/* =========================================================
-   COMPARISON
-========================================================= */
-
-function setupComparisonSelectors() {
-
-    const current =
-        document.getElementById(
-            "compareCurrent"
-        );
-
-
-    const previous =
-        document.getElementById(
-            "comparePrevious"
-        );
-
-
-    const options =
-        historyData
-            .map(
-                item =>
-                    `<option value="${escapeHtml(item.date)}">
-                        ${formatDate(item.date)}
-                    </option>`
-            )
-            .join("");
-
-
-    current.innerHTML =
-        options;
-
-
-    previous.innerHTML =
-        options;
-
-
-    if (
-        historyData.length
-    ) {
-
-        current.value =
-            historyData[0].date;
-
-    }
-
-
-    if (
-        historyData.length > 1
-    ) {
-
-        previous.value =
-            historyData[1].date;
-
-    }
-
-
-    runComparison();
-
-}
-
-
-/* =========================================================
-   RUN COMPARISON
-========================================================= */
-
-async function runComparison() {
-
-    const currentDate =
-        document.getElementById(
-            "compareCurrent"
-        ).value;
-
-
-    const previousDate =
-        document.getElementById(
-            "comparePrevious"
-        ).value;
-
-
-    if (
-        !currentDate ||
-        !previousDate
-    ) {
-
-        return;
-
-    }
-
-
-    try {
-
-        const [
-            currentResponse,
-            previousResponse
-        ] = await Promise.all([
-
-            fetch(
-                GAS_URL +
-                "?action=dashboard&date=" +
-                encodeURIComponent(
-                    currentDate
-                )
-            ),
-
-            fetch(
-                GAS_URL +
-                "?action=dashboard&date=" +
-                encodeURIComponent(
-                    previousDate
-                )
-            )
-
-        ]);
-
-
-        const current =
-            await currentResponse.json();
-
-
-        const previous =
-            await previousResponse.json();
-
-
-        if (
-            !current.ok ||
-            !previous.ok
-        ) {
-
-            throw new Error(
-                "Unable to load comparison data."
-            );
-
-        }
-
-
-        renderComparison(
-            current.snapshot,
-            previous.snapshot
-        );
-
-    }
-
-    catch(error) {
-
-        document.getElementById(
-            "comparisonGrid"
-        ).innerHTML =
-            `<div class="empty">
-                ${escapeHtml(
-                    error.message
-                )}
-            </div>`;
-
-    }
-
-}
-
-
-/* =========================================================
-   COMPARISON UI
-========================================================= */
-
-function renderComparison(
-    current,
-    previous
-) {
-
-    const metrics = [
-
-        {
-            label:
-                "Pipeline",
-
-            current:
-                current.summary.totalPipeline,
-
-            previous:
-                previous.summary.totalPipeline,
-
-            currency:
-                true
-
-        },
-
-        {
-            label:
-                "Opportunities",
-
-            current:
-                current.summary.totalOpportunities,
-
-            previous:
-                previous.summary.totalOpportunities
-
-        },
-
-        {
-            label:
-                "Stale",
-
-            current:
-                current.summary.staleOpportunities,
-
-            previous:
-                previous.summary.staleOpportunities
-
-        },
-
-        {
-            label:
-                "Stale %",
-
-            current:
-                current.summary.stalePercentage,
-
-            previous:
-                previous.summary.stalePercentage,
-
-            percent:
-                true
-
-        }
-
-    ];
+      "totalOpps"
+    ).textContent =
+      formatNumber(totalOpps);
 
 
     document.getElementById(
-        "comparisonGrid"
-    ).innerHTML =
-
-        metrics.map(
-            metric => {
-
-                const difference =
-                    Number(
-                        metric.current
-                    ) -
-                    Number(
-                        metric.previous
-                    );
+      "totalPipeline"
+    ).textContent =
+      formatCurrency(pipeline);
 
 
-                const percentageChange =
-                    Number(
-                        metric.previous
-                    ) !== 0
-
-                        ? (
-                            difference /
-                            Number(
-                                metric.previous
-                            )
-                        ) * 100
-
-                        : 0;
+    document.getElementById(
+      "staleOpps"
+    ).textContent =
+      formatNumber(stale);
 
 
-                const displayCurrent =
-                    metric.currency
-                        ? formatCurrency(
-                            metric.current
-                        )
-                        : metric.percent
-                            ? Number(
-                                metric.current
-                              ).toFixed(1) + "%"
-                            : formatNumber(
-                                metric.current
-                              );
+    document.getElementById(
+      "stalePercent"
+    ).textContent =
+      stalePercent.toFixed(1) + "%";
 
 
-                const displayPrevious =
-                    metric.currency
-                        ? formatCurrency(
-                            metric.previous
-                        )
-                        : metric.percent
-                            ? Number(
-                                metric.previous
-                              ).toFixed(1) + "%"
-                            : formatNumber(
-                                metric.previous
-                              );
+    document.getElementById(
+      "amCount"
+    ).textContent =
+      formatNumber(amCount);
+
+  }
 
 
-                const sign =
-                    difference >= 0
-                        ? "+"
-                        : "";
+  /*
+   * ============================================================
+   * AM CHART
+   * ============================================================
+   */
+
+  function renderAMChart() {
+
+    const container =
+      document.getElementById("amChart");
 
 
-                const changeClass =
-                    difference > 0
-                        ? "positive"
-                        : difference < 0
-                            ? "negative"
-                            : "";
+    const data =
+      dashboardData.ams || [];
 
 
-                return `
+    if (!data.length) {
 
-                    <div class="comparison-card">
+      container.innerHTML =
+        emptyHTML("No AM data available");
 
-                        <div class="comparison-label">
-                            ${metric.label}
-                        </div>
+      return;
 
-                        <div class="comparison-values">
+    }
 
-                            <div class="current-value">
-                                ${displayCurrent}
-                            </div>
 
-                            <div class="previous-value">
-                                vs ${displayPrevious}
-                            </div>
+    const rows =
+      data.map(item => {
 
-                        </div>
+        const name =
+          getValue(
+            item,
+            [
+              "name",
+              "am",
+              "AM",
+              "owner",
+              "accountManager"
+            ],
+            "Unknown"
+          );
 
-                        <div
-                            class="change ${changeClass}"
-                        >
 
-                            ${sign}
-                            ${
-                                metric.currency
-                                    ? formatCurrency(
-                                        difference
-                                      )
-                                    : metric.percent
-                                        ? sign +
-                                          Number(
-                                            difference
-                                          ).toFixed(1) +
-                                          "pp"
-                                        : formatNumber(
-                                            difference
-                                          )
-                            }
+        const value =
+          firstNumber(
+            item.pipeline,
+            item.totalPipeline,
+            item.pipelineValue,
+            item.value,
+            item.amount,
+            0
+          );
 
-                            ${
-                                Number.isFinite(
-                                    percentageChange
-                                )
-                                    ? " (" +
-                                      sign +
-                                      percentageChange.toFixed(1) +
-                                      "%)"
-                                    : ""
-                            }
 
-                        </div>
+        return {
+          name,
+          value
+        };
 
-                    </div>
+      });
 
-                `;
 
-            }
-        )
+    const max =
+      Math.max(
+        ...rows.map(x => x.value),
+        1
+      );
+
+
+    container.innerHTML =
+      rows
+        .sort((a, b) => b.value - a.value)
+        .map(row => `
+
+          <div class="chart-row">
+
+            <div class="chart-label">
+
+              <span>
+                ${escapeHTML(row.name)}
+              </span>
+
+              <span>
+                ${formatCurrency(row.value)}
+              </span>
+
+            </div>
+
+            <div class="bar-track">
+
+              <div
+                class="bar"
+                style="width:${Math.max(
+                  3,
+                  (row.value / max) * 100
+                )}%"
+              ></div>
+
+            </div>
+
+          </div>
+
+        `)
         .join("");
 
-}
+  }
 
 
-/* =========================================================
-   UPLOAD
-========================================================= */
+  /*
+   * ============================================================
+   * STAGE CHART
+   * ============================================================
+   */
 
-function showFileName(
-    inputId,
-    outputId
-) {
+  function renderStageChart() {
 
-    const input =
-        document.getElementById(
-            inputId
+    const container =
+      document.getElementById("stageChart");
+
+
+    const data =
+      dashboardData.stages || [];
+
+
+    if (!data.length) {
+
+      container.innerHTML =
+        emptyHTML("No stage data available");
+
+      return;
+
+    }
+
+
+    const rows =
+      data.map(item => {
+
+        const name =
+          getValue(
+            item,
+            [
+              "stage",
+              "name",
+              "label"
+            ],
+            "Unknown"
+          );
+
+
+        const value =
+          firstNumber(
+            item.pipeline,
+            item.totalPipeline,
+            item.value,
+            item.amount,
+            item.count,
+            0
+          );
+
+
+        return {
+          name,
+          value
+        };
+
+      });
+
+
+    const max =
+      Math.max(
+        ...rows.map(x => x.value),
+        1
+      );
+
+
+    container.innerHTML =
+      rows
+        .sort((a, b) => b.value - a.value)
+        .map(row => `
+
+          <div class="chart-row">
+
+            <div class="chart-label">
+
+              <span>
+                ${escapeHTML(row.name)}
+              </span>
+
+              <span>
+                ${formatCurrency(row.value)}
+              </span>
+
+            </div>
+
+            <div class="bar-track">
+
+              <div
+                class="bar success"
+                style="width:${Math.max(
+                  3,
+                  (row.value / max) * 100
+                )}%"
+              ></div>
+
+            </div>
+
+          </div>
+
+        `)
+        .join("");
+
+  }
+
+
+  /*
+   * ============================================================
+   * STALE BY AM
+   * ============================================================
+   */
+
+  function renderStaleChart() {
+
+    const container =
+      document.getElementById("staleChart");
+
+
+    const opportunities =
+      dashboardData.opportunities || [];
+
+
+    if (!opportunities.length) {
+
+      container.innerHTML =
+        emptyHTML(
+          "No opportunity data available"
+        );
+
+      return;
+
+    }
+
+
+    const map =
+      {};
+
+
+    opportunities
+      .filter(isStale)
+      .forEach(opp => {
+
+        const am =
+          getAM(opp) ||
+          "Unassigned";
+
+
+        map[am] =
+          (map[am] || 0) + 1;
+
+      });
+
+
+    const rows =
+      Object.entries(map)
+        .map(([name, value]) => ({
+          name,
+          value
+        }))
+        .sort(
+          (a, b) =>
+            b.value - a.value
         );
 
 
-    const output =
-        document.getElementById(
-            outputId
+    if (!rows.length) {
+
+      container.innerHTML =
+        emptyHTML(
+          "No stale opportunities 🎉"
         );
+
+      return;
+
+    }
+
+
+    const max =
+      Math.max(
+        ...rows.map(x => x.value),
+        1
+      );
+
+
+    container.innerHTML =
+      rows
+        .map(row => `
+
+          <div class="chart-row">
+
+            <div class="chart-label">
+
+              <span>
+                ${escapeHTML(row.name)}
+              </span>
+
+              <span>
+                ${row.value}
+              </span>
+
+            </div>
+
+            <div class="bar-track">
+
+              <div
+                class="bar danger"
+                style="width:${Math.max(
+                  3,
+                  (row.value / max) * 100
+                )}%"
+              ></div>
+
+            </div>
+
+          </div>
+
+        `)
+        .join("");
+
+  }
+
+
+  /*
+   * ============================================================
+   * FILTERS
+   * ============================================================
+   */
+
+  function populateFilters() {
+
+    const opportunities =
+      dashboardData.opportunities || [];
+
+
+    const ams =
+      [...new Set(
+        opportunities
+          .map(getAM)
+          .filter(Boolean)
+      )]
+      .sort();
+
+
+    const stages =
+      [...new Set(
+        opportunities
+          .map(getStage)
+          .filter(Boolean)
+      )]
+      .sort();
+
+
+    const amFilter =
+      document.getElementById("amFilter");
+
+
+    const stageFilter =
+      document.getElementById("stageFilter");
+
+
+    const currentAM =
+      amFilter.value;
+
+
+    const currentStage =
+      stageFilter.value;
+
+
+    amFilter.innerHTML =
+      `<option value="">All AMs</option>` +
+      ams.map(am =>
+        `<option value="${escapeAttribute(am)}">
+          ${escapeHTML(am)}
+        </option>`
+      ).join("");
+
+
+    stageFilter.innerHTML =
+      `<option value="">All stages</option>` +
+      stages.map(stage =>
+        `<option value="${escapeAttribute(stage)}">
+          ${escapeHTML(stage)}
+        </option>`
+      ).join("");
 
 
     if (
-        input.files.length
+      ams.includes(currentAM)
     ) {
-
-        output.textContent =
-            input.files[0].name;
-
+      amFilter.value =
+        currentAM;
     }
-
-}
-
-
-/* =========================================================
-   READ EXCEL
-========================================================= */
-
-function readExcelFile(
-    file
-) {
-
-    return new Promise(
-        function(resolve, reject) {
-
-            const reader =
-                new FileReader();
-
-
-            reader.onload =
-                function(event) {
-
-                    try {
-
-                        const workbook =
-                            XLSX.read(
-                                event.target.result,
-                                {
-                                    type:
-                                        "array"
-                                }
-                            );
-
-
-                        const result = {
-
-                            headers: [],
-                            rows: []
-
-                        };
-
-
-                        /*
-                         * Read first sheet.
-                         */
-                        const firstSheet =
-                            workbook
-                                .Sheets[
-                                    workbook
-                                        .SheetNames[0]
-                                ];
-
-
-                        const matrix =
-                            XLSX.utils.sheet_to_json(
-                                firstSheet,
-                                {
-                                    header:
-                                        1,
-                                    defval:
-                                        ""
-                                }
-                            );
-
-
-                        if (
-                            !matrix.length
-                        ) {
-
-                            throw new Error(
-                                "Excel file is empty."
-                            );
-
-                        }
-
-
-                        result.headers =
-                            matrix[0].map(
-                                value =>
-                                    String(
-                                        value
-                                    ).trim()
-                            );
-
-
-                        for (
-                            let i = 1;
-                            i < matrix.length;
-                            i++
-                        ) {
-
-                            const row = {};
-
-                            result.headers.forEach(
-                                (
-                                    header,
-                                    index
-                                ) => {
-
-                                    row[
-                                        header
-                                    ] =
-                                        matrix[i][
-                                            index
-                                        ] ??
-                                        "";
-
-                                }
-                            );
-
-
-                            /*
-                             * Ignore completely empty rows.
-                             */
-                            const hasData =
-                                Object.values(
-                                    row
-                                ).some(
-                                    value =>
-                                        String(
-                                            value
-                                        ).trim() !==
-                                        ""
-                                );
-
-
-                            if (
-                                hasData
-                            ) {
-
-                                result.rows.push(
-                                    row
-                                );
-
-                            }
-
-                        }
-
-
-                        resolve(
-                            result
-                        );
-
-                    }
-
-                    catch(error) {
-
-                        reject(
-                            error
-                        );
-
-                    }
-
-                };
-
-
-            reader.onerror =
-                function() {
-
-                    reject(
-                        new Error(
-                            "Unable to read file."
-                        )
-                    );
-
-                };
-
-
-            reader.readAsArrayBuffer(
-                file
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   GENERATE
-========================================================= */
-
-async function generateReports() {
-
-    const staleFile =
-        document.getElementById(
-            "staleFile"
-        ).files[0];
-
-
-    const pipelineFile =
-        document.getElementById(
-            "pipelineFile"
-        ).files[0];
-
-
-    const button =
-        document.getElementById(
-            "generateButton"
-        );
-
-
-    const status =
-        document.getElementById(
-            "generateStatus"
-        );
 
 
     if (
-        !staleFile ||
-        !pipelineFile
+      stages.includes(currentStage)
     ) {
-
-        status.className =
-            "status error";
-
-
-        status.textContent =
-            "Please upload both files.";
-
-
-        return;
-
+      stageFilter.value =
+        currentStage;
     }
 
-
-    try {
-
-        button.disabled =
-            true;
+  }
 
 
-        button.textContent =
-            "Processing...";
+  /*
+   * ============================================================
+   * OPPORTUNITY TABLE
+   * ============================================================
+   */
+
+  function renderOpportunityTable() {
+
+    const container =
+      document.getElementById(
+        "tableContainer"
+      );
 
 
-        status.className =
-            "status";
+    const opportunities =
+      dashboardData?.opportunities || [];
 
 
-        status.textContent =
-            "Reading Excel files...";
+    const search =
+      (
+        document.getElementById(
+          "searchInput"
+        ).value || ""
+      )
+        .trim()
+        .toLowerCase();
 
 
-        const [
-            stale,
-            pipeline
-        ] = await Promise.all([
-
-            readExcelFile(
-                staleFile
-            ),
-
-            readExcelFile(
-                pipelineFile
-            )
-
-        ]);
+    const amFilter =
+      document.getElementById(
+        "amFilter"
+      ).value;
 
 
-        status.textContent =
-            "Generating Master Script...";
+    const stageFilter =
+      document.getElementById(
+        "stageFilter"
+      ).value;
 
 
-        const response =
-            await fetch(
-                "/api/process",
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json"
-
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            action:
-                                "generate",
-
-                            stale:
-                                stale,
-
-                            pipeline:
-                                pipeline
-
-                        })
-
-                }
-            );
+    const staleFilter =
+      document.getElementById(
+        "staleFilter"
+      ).value;
 
 
-        const result =
-            await response.json();
+    const filtered =
+      opportunities.filter(opp => {
+
+        const am =
+          getAM(opp);
+
+
+        const stage =
+          getStage(opp);
+
+
+        const stale =
+          isStale(opp);
+
+
+        const text =
+          JSON.stringify(opp)
+            .toLowerCase();
 
 
         if (
-            !response.ok ||
-            !result.ok
+          search &&
+          !text.includes(search)
         ) {
-
-            throw new Error(
-                result.error ||
-                "Generation failed."
-            );
-
+          return false;
         }
-
-
-        status.className =
-            "status success";
-
-
-        status.textContent =
-            "Generation completed successfully.";
-
-
-        renderGenerationResult(
-            result
-        );
-
-
-        showToast(
-            "Master Script generated successfully."
-        );
-
-
-        /*
-         * Reload historical data so
-         * today's snapshot appears.
-         */
-        await loadHistory();
-
-
-        /*
-         * Go to dashboard.
-         */
-        document
-            .querySelectorAll(
-                ".nav button"
-            )[0]
-            .click();
 
 
         if (
-            result.date
+          amFilter &&
+          am !== amFilter
         ) {
-
-            await loadDashboard(
-                result.date
-            );
-
+          return false;
         }
 
-    }
 
-    catch(error) {
-
-        console.error(
-            error
-        );
-
-
-        status.className =
-            "status error";
-
-
-        status.textContent =
-            error.message;
-
-
-        showToast(
-            error.message,
-            true
-        );
-
-    }
-
-    finally {
-
-        button.disabled =
-            false;
-
-
-        button.textContent =
-            "Generate Master Script";
-
-    }
-
-}
-
-
-/* =========================================================
-   GENERATION RESULT
-========================================================= */
-
-function renderGenerationResult(
-    result
-) {
-
-    const card =
-        document.getElementById(
-            "generationResult"
-        );
-
-
-    const body =
-        document.getElementById(
-            "generationResultBody"
-        );
-
-
-    card.style.display =
-        "block";
-
-
-    body.innerHTML = `
-
-        <div
-            style="
-            display:grid;
-            grid-template-columns:
-            repeat(auto-fit,minmax(150px,1fr));
-            gap:12px;
-            "
-        >
-
-            <div class="comparison-card">
-
-                <div class="comparison-label">
-                    Opportunities
-                </div>
-
-                <div class="current-value">
-                    ${formatNumber(
-                        result.consolidatedRows
-                    )}
-                </div>
-
-            </div>
-
-
-            <div class="comparison-card">
-
-                <div class="comparison-label">
-                    Stale Matched
-                </div>
-
-                <div class="current-value">
-                    ${formatNumber(
-                        result.staleMatched
-                    )}
-                </div>
-
-            </div>
-
-
-            <div class="comparison-card">
-
-                <div class="comparison-label">
-                    AMs
-                </div>
-
-                <div class="current-value">
-                    ${formatNumber(
-                        result.amCount
-                    )}
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <br>
-
-
-        <p>
-
-            <strong>
-                Master Excel:
-            </strong>
-
-            <a
-                href="${escapeAttribute(
-                    result.masterFileUrl
-                )}"
-                target="_blank"
-            >
-                Open in Drive
-            </a>
-
-        </p>
-
-
-        <p>
-
-            <strong>
-                Emails sent:
-            </strong>
-
-            ${formatNumber(
-                (result.sent || []).length
-            )}
-
-        </p>
-
-
-        ${
-            result.errors &&
-            result.errors.length
-
-                ? `
-                    <p
-                        class="negative"
-                    >
-                        ${result.errors
-                            .map(
-                                escapeHtml
-                            )
-                            .join("<br>")}
-                    </p>
-                  `
-
-                : `
-                    <p
-                        class="positive"
-                    >
-                        ✓ All processing completed.
-                    </p>
-                  `
+        if (
+          stageFilter &&
+          stage !== stageFilter
+        ) {
+          return false;
         }
+
+
+        if (
+          staleFilter === "stale" &&
+          !stale
+        ) {
+          return false;
+        }
+
+
+        if (
+          staleFilter === "fresh" &&
+          stale
+        ) {
+          return false;
+        }
+
+
+        return true;
+
+      });
+
+
+    if (!filtered.length) {
+
+      container.innerHTML =
+        emptyHTML(
+          opportunities.length
+            ? "No opportunities match your filters."
+            : "No opportunities found for this date."
+        );
+
+      return;
+
+    }
+
+
+    container.innerHTML = `
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Status</th>
+            <th>Opportunity</th>
+            <th>Account</th>
+            <th>AM</th>
+            <th>Stage</th>
+            <th>Amount</th>
+            <th>Close Date</th>
+            <th>Age</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${filtered
+            .map(renderOpportunityRow)
+            .join("")}
+
+        </tbody>
+
+      </table>
 
     `;
 
-}
+  }
 
 
-/* =========================================================
-   REFRESH
-========================================================= */
+  /*
+   * ============================================================
+   * TABLE ROW
+   * ============================================================
+   */
 
-async function refreshDashboard() {
+  function renderOpportunityRow(opp) {
+
+    const stale =
+      isStale(opp);
+
+
+    const name =
+      getValue(
+        opp,
+        [
+          "opportunity",
+          "opportunityName",
+          "name",
+          "Opportunity Name"
+        ],
+        "—"
+      );
+
+
+    const account =
+      getValue(
+        opp,
+        [
+          "account",
+          "accountName",
+          "Account",
+          "Account Name"
+        ],
+        "—"
+      );
+
+
+    const am =
+      getAM(opp) ||
+      "—";
+
+
+    const stage =
+      getStage(opp) ||
+      "—";
+
+
+    const amount =
+      firstNumber(
+        opp.amount,
+        opp.value,
+        opp.pipeline,
+        opp.pipelineValue,
+        opp["Amount"],
+        0
+      );
+
+
+    const closeDate =
+      getValue(
+        opp,
+        [
+          "closeDate",
+          "close_date",
+          "Close Date"
+        ],
+        ""
+      );
+
+
+    const age =
+      firstNumber(
+        opp.age,
+        opp.ageDays,
+        opp.daysOpen,
+        opp.opportunityAge,
+        null
+      );
+
+
+    return `
+
+      <tr
+        class="${stale ? "stale-row" : ""}"
+      >
+
+        <td>
+
+          ${
+            stale
+              ? `<span class="badge badge-danger">
+                   STALE
+                 </span>`
+              : `<span class="badge badge-success">
+                   FRESH
+                 </span>`
+          }
+
+        </td>
+
+
+        <td>
+          <strong>
+            ${escapeHTML(name)}
+          </strong>
+        </td>
+
+
+        <td>
+          ${escapeHTML(account)}
+        </td>
+
+
+        <td>
+          ${escapeHTML(am)}
+        </td>
+
+
+        <td>
+          <span class="badge badge-neutral">
+            ${escapeHTML(stage)}
+          </span>
+        </td>
+
+
+        <td>
+          ${formatCurrency(amount)}
+        </td>
+
+
+        <td>
+          ${formatDate(closeDate)}
+        </td>
+
+
+        <td>
+          ${
+            age === null
+              ? "—"
+              : age + " days"
+          }
+        </td>
+
+      </tr>
+
+    `;
+
+  }
+
+
+  /*
+   * ============================================================
+   * STALE DETECTION
+   * ============================================================
+   *
+   * Supports the backend's expected stale fields.
+   */
+
+  function isStale(opp) {
+
+    const value =
+      opp.stale ??
+      opp.isStale ??
+      opp.STALE ??
+      opp["Stale"] ??
+      opp["staleFlag"];
+
 
     if (
-        currentSnapshot
+      value === true ||
+      value === 1
+    ) {
+      return true;
+    }
+
+
+    if (
+      typeof value === "string"
     ) {
 
-        await loadDashboard(
-            currentSnapshot.date
-        );
+      const normalized =
+        value
+          .trim()
+          .toLowerCase();
+
+
+      if (
+        [
+          "yes",
+          "true",
+          "stale",
+          "1"
+        ].includes(normalized)
+      ) {
+        return true;
+      }
 
     }
 
-}
+
+    return false;
+
+  }
 
 
-/* =========================================================
-   FORMATTING
-========================================================= */
+  /*
+   * ============================================================
+   * GETTERS
+   * ============================================================
+   */
 
-function formatNumber(
-    value
-) {
+  function getAM(opp) {
 
-    return Number(
-        value || 0
-    ).toLocaleString(
-        "en-IN"
+    return String(
+      getValue(
+        opp,
+        [
+          "am",
+          "AM",
+          "owner",
+          "accountManager",
+          "account_manager",
+          "AM Name",
+          "Account Manager"
+        ],
+        ""
+      )
+    ).trim();
+
+  }
+
+
+  function getStage(opp) {
+
+    return String(
+      getValue(
+        opp,
+        [
+          "stage",
+          "Stage",
+          "opportunityStage"
+        ],
+        ""
+      )
+    ).trim();
+
+  }
+
+
+  function getValue(
+    obj,
+    keys,
+    fallback = ""
+  ) {
+
+    for (
+      const key of keys
+    ) {
+
+      if (
+        obj &&
+        obj[key] !== undefined &&
+        obj[key] !== null &&
+        obj[key] !== ""
+      ) {
+
+        return obj[key];
+
+      }
+
+    }
+
+    return fallback;
+
+  }
+
+
+  /*
+   * ============================================================
+   * NUMBERS
+   * ============================================================
+   */
+
+  function firstNumber(...values) {
+
+    for (
+      const value of values
+    ) {
+
+      if (
+        value === null ||
+        value === undefined ||
+        value === ""
+      ) {
+        continue;
+      }
+
+
+      const number =
+        Number(
+          String(value)
+            .replace(/[₹,$,\s]/g, "")
+        );
+
+
+      if (
+        Number.isFinite(number)
+      ) {
+        return number;
+      }
+
+    }
+
+
+    return 0;
+
+  }
+
+
+  function sumPipeline(
+    opportunities
+  ) {
+
+    return opportunities.reduce(
+      (sum, opp) => {
+
+        return (
+          sum +
+          firstNumber(
+            opp.amount,
+            opp.value,
+            opp.pipeline,
+            opp.pipelineValue,
+            opp["Amount"]
+          )
+        );
+
+      },
+      0
     );
 
-}
+  }
 
 
-function formatCurrency(
-    value
-) {
+  /*
+   * ============================================================
+   * FORMATTING
+   * ============================================================
+   */
+
+  function formatNumber(value) {
+
+    return new Intl.NumberFormat(
+      "en-IN"
+    ).format(
+      Number(value) || 0
+    );
+
+  }
+
+
+  function formatCurrency(value) {
 
     const number =
-        Number(
-            value || 0
-        );
+      Number(value) || 0;
 
 
     if (
-        Math.abs(number) >=
-        10000000
+      Math.abs(number) >= 10000000
     ) {
 
-        return (
-            "₹" +
-            (
-                number /
-                10000000
-            ).toFixed(2) +
-            " Cr"
-        );
+      return (
+        "₹" +
+        (
+          number / 10000000
+        ).toFixed(2) +
+        " Cr"
+      );
 
     }
 
 
     if (
-        Math.abs(number) >=
-        100000
+      Math.abs(number) >= 100000
     ) {
 
-        return (
-            "₹" +
-            (
-                number /
-                100000
-            ).toFixed(2) +
-            " L"
-        );
+      return (
+        "₹" +
+        (
+          number / 100000
+        ).toFixed(2) +
+        " L"
+      );
 
     }
 
 
     return (
-        "₹" +
-        number.toLocaleString(
-            "en-IN",
-            {
-                maximumFractionDigits:
-                    0
-            }
-        )
+      "₹" +
+      new Intl.NumberFormat(
+        "en-IN",
+        {
+          maximumFractionDigits: 0
+        }
+      ).format(number)
     );
 
-}
+  }
 
 
-function formatCompactCurrency(
-    value
-) {
+  function formatDate(value) {
 
-    const number =
-        Number(
-            value || 0
-        );
-
-
-    if (
-        Math.abs(number) >=
-        10000000
-    ) {
-
-        return (
-            "₹" +
-            (
-                number /
-                10000000
-            ).toFixed(1) +
-            "Cr"
-        );
-
-    }
-
-
-    if (
-        Math.abs(number) >=
-        100000
-    ) {
-
-        return (
-            "₹" +
-            (
-                number /
-                100000
-            ).toFixed(1) +
-            "L"
-        );
-
-    }
-
-
-    if (
-        Math.abs(number) >=
-        1000
-    ) {
-
-        return (
-            "₹" +
-            (
-                number /
-                1000
-            ).toFixed(0) +
-            "K"
-        );
-
-    }
-
-
-    return (
-        "₹" +
-        number
-    );
-
-}
-
-
-function formatDate(
-    dateString
-) {
-
-    if (
-        !dateString
-    ) {
-
-        return "-";
-
-    }
-
-
-    const parts =
-        String(
-            dateString
-        ).split("-");
-
-
-    if (
-        parts.length !== 3
-    ) {
-
-        return dateString;
-
+    if (!value) {
+      return "—";
     }
 
 
     const date =
-        new Date(
-            Number(parts[0]),
-            Number(parts[1]) - 1,
-            Number(parts[2])
-        );
+      new Date(value);
+
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+
+      return String(value);
+
+    }
 
 
     return date.toLocaleDateString(
-        "en-IN",
-        {
-
-            day:
-                "2-digit",
-
-            month:
-                "short",
-
-            year:
-                "numeric"
-
-        }
+      "en-IN",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }
     );
 
-}
+  }
 
 
-function formatDateTime(
-    value
-) {
+  /*
+   * ============================================================
+   * PREVIOUS DAY
+   * ============================================================
+   */
 
-    if (
-        !value
-    ) {
+  function loadPreviousDay() {
 
-        return "-";
-
-    }
+    const picker =
+      document.getElementById(
+        "datePicker"
+      );
 
 
     const date =
-        new Date(
-            value
-        );
+      new Date(
+        picker.value + "T00:00:00"
+      );
 
 
-    if (
-        isNaN(
-            date.getTime()
-        )
-    ) {
-
-        return value;
-
-    }
-
-
-    return date.toLocaleString(
-        "en-IN",
-        {
-
-            day:
-                "2-digit",
-
-            month:
-                "short",
-
-            year:
-                "numeric",
-
-            hour:
-                "2-digit",
-
-            minute:
-                "2-digit"
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   ESCAPING
-========================================================= */
-
-function escapeHtml(
-    value
-) {
-
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
-
-
-function escapeAttribute(
-    value
-) {
-
-    return escapeHtml(
-        value
-    );
-
-}
-
-
-function escapeJs(
-    value
-) {
-
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /\\/g,
-            "\\\\"
-        )
-        .replace(
-            /'/g,
-            "\\'"
-        )
-        .replace(
-            /\n/g,
-            "\\n"
-        )
-        .replace(
-            /\r/g,
-            "\\r"
-        );
-
-}
-
-
-/* =========================================================
-   TOAST
-========================================================= */
-
-let toastTimer;
-
-
-function showToast(
-    message,
-    error = false
-) {
-
-    const toast =
-        document.getElementById(
-            "toast"
-        );
-
-
-    toast.textContent =
-        message;
-
-
-    toast.style.background =
-        error
-            ? "#991b1b"
-            : "#0f172a";
-
-
-    toast.classList.add(
-        "show"
+    date.setDate(
+      date.getDate() - 1
     );
 
 
-    clearTimeout(
-        toastTimer
-    );
+    picker.value =
+      date
+        .toISOString()
+        .split("T")[0];
 
 
-    toastTimer =
-        setTimeout(
-            function() {
+    loadDashboard();
 
-                toast.classList.remove(
-                    "show"
-                );
+  }
 
-            },
-            3500
-        );
 
-}
+  /*
+   * ============================================================
+   * STATUS
+   * ============================================================
+   */
+
+  function setStatus(
+    type,
+    message
+  ) {
+
+    const dot =
+      document.getElementById(
+        "statusDot"
+      );
+
+
+    dot.className =
+      "status-dot " +
+      (
+        type === "success"
+          ? ""
+          : type
+      );
+
+
+    document.getElementById(
+      "statusText"
+    ).textContent =
+      message;
+
+  }
+
+
+  /*
+   * ============================================================
+   * LOADING
+   * ============================================================
+   */
+
+  function showLoading() {
+
+    document.getElementById(
+      "amChart"
+    ).innerHTML =
+      loadingHTML();
+
+
+    document.getElementById(
+      "stageChart"
+    ).innerHTML =
+      loadingHTML();
+
+
+    document.getElementById(
+      "staleChart"
+    ).innerHTML =
+      loadingHTML();
+
+
+    document.getElementById(
+      "tableContainer"
+    ).innerHTML =
+      loadingHTML();
+
+  }
+
+
+  function loadingHTML() {
+
+    return `
+
+      <div class="loading">
+
+        <div class="spinner"></div>
+
+        Loading...
+
+      </div>
+
+    `;
+
+  }
+
+
+  /*
+   * ============================================================
+   * EMPTY
+   * ============================================================
+   */
+
+  function renderEmpty() {
+
+    document.getElementById(
+      "totalOpps"
+    ).textContent = "—";
+
+
+    document.getElementById(
+      "totalPipeline"
+    ).textContent = "—";
+
+
+    document.getElementById(
+      "staleOpps"
+    ).textContent = "—";
+
+
+    document.getElementById(
+      "stalePercent"
+    ).textContent = "—";
+
+
+    document.getElementById(
+      "amCount"
+    ).textContent = "—";
+
+
+    document.getElementById(
+      "amChart"
+    ).innerHTML =
+      emptyHTML(
+        "No dashboard data"
+      );
+
+
+    document.getElementById(
+      "stageChart"
+    ).innerHTML =
+      emptyHTML(
+        "No dashboard data"
+      );
+
+
+    document.getElementById(
+      "staleChart"
+    ).innerHTML =
+      emptyHTML(
+        "No dashboard data"
+      );
+
+
+    document.getElementById(
+      "tableContainer"
+    ).innerHTML =
+      emptyHTML(
+        "No opportunity data"
+      );
+
+  }
+
+
+  function emptyHTML(message) {
+
+    return `
+
+      <div class="empty">
+
+        <div class="empty-icon">
+          ○
+        </div>
+
+        ${escapeHTML(message)}
+
+      </div>
+
+    `;
+
+  }
+
+
+  /*
+   * ============================================================
+   * ERROR
+   * ============================================================
+   */
+
+  function showError(message) {
+
+    const box =
+      document.getElementById(
+        "errorBox"
+      );
+
+
+    box.textContent =
+      message;
+
+
+    box.style.display =
+      "block";
+
+  }
+
+
+  function hideError() {
+
+    document.getElementById(
+      "errorBox"
+    ).style.display =
+      "none";
+
+  }
+
+
+  /*
+   * ============================================================
+   * SECURITY / HTML ESCAPING
+   * ============================================================
+   */
+
+  function escapeHTML(value) {
+
+    return String(value ?? "")
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+      .replace(
+        /'/g,
+        "&#039;"
+      );
+
+  }
+
+
+  function escapeAttribute(value) {
+
+    return escapeHTML(value);
+
+  }
 
 </script>
 
