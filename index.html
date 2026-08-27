@@ -1,13 +1,25 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>AM Master Script Dashboard</title>
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1.0"
+>
+
+<title>
+AM Master Script
+</title>
+
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <style>
 
@@ -15,234 +27,934 @@
   box-sizing: border-box;
 }
 
+
 body {
+
   margin: 0;
-  font-family: Inter, Arial, sans-serif;
-  background: #f5f7fb;
-  color: #172033;
+
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  background:
+    #f4f7fb;
+
+  color:
+    #172033;
 }
+
 
 .header {
-  background: #111827;
-  color: white;
-  padding: 22px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+
+  background:
+    linear-gradient(
+      135deg,
+      #111827,
+      #263449
+    );
+
+  color:
+    white;
+
+  padding:
+    25px 32px;
+
+  display:
+    flex;
+
+  justify-content:
+    space-between;
+
+  align-items:
+    center;
 }
+
 
 .header h1 {
+
   margin: 0;
-  font-size: 24px;
+
+  font-size:
+    25px;
+
 }
 
-.header span {
-  opacity: .7;
-  font-size: 13px;
+
+.header p {
+
+  margin:
+    5px 0 0;
+
+  opacity:
+    .65;
+
+  font-size:
+    13px;
+
 }
+
 
 .container {
-  padding: 28px;
-  max-width: 1600px;
-  margin: auto;
+
+  max-width:
+    1600px;
+
+  margin:
+    auto;
+
+  padding:
+    25px;
+
 }
 
-.controls {
-  background: white;
-  padding: 18px;
-  border-radius: 14px;
-  margin-bottom: 24px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,.05);
+
+/* ================================
+   UPLOAD
+================================ */
+
+.upload-panel {
+
+  background:
+    white;
+
+  border-radius:
+    16px;
+
+  padding:
+    25px;
+
+  margin-bottom:
+    22px;
+
+  box-shadow:
+    0 5px 25px rgba(0,0,0,.05);
+
 }
 
-input,
-button {
-  padding: 11px 14px;
-  border-radius: 8px;
-  border: 1px solid #d8dee9;
+
+.upload-header {
+
+  display:
+    flex;
+
+  justify-content:
+    space-between;
+
+  margin-bottom:
+    22px;
+
 }
 
-button {
-  background: #111827;
-  color: white;
-  cursor: pointer;
-  border: 0;
+
+.upload-header h2 {
+
+  margin: 0;
+
+  font-size:
+    19px;
+
 }
 
-button:hover {
-  opacity: .9;
+
+.upload-header p {
+
+  margin:
+    6px 0 0;
+
+  color:
+    #64748b;
+
+  font-size:
+    13px;
+
 }
+
+
+.upload-status {
+
+  height:
+    fit-content;
+
+  padding:
+    8px 13px;
+
+  border-radius:
+    20px;
+
+  background:
+    #f1f5f9;
+
+  font-size:
+    12px;
+
+  font-weight:
+    600;
+
+}
+
+
+.upload-grid {
+
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:
+    18px;
+
+}
+
+
+.file-box {
+
+  border:
+    2px dashed #d5dce7;
+
+  border-radius:
+    14px;
+
+  padding:
+    22px;
+
+  display:
+    flex;
+
+  gap:
+    18px;
+
+  align-items:
+    center;
+
+}
+
+
+.file-box.ready {
+
+  border-color:
+    #059669;
+
+  background:
+    #f0fdf4;
+
+}
+
+
+.file-icon {
+
+  font-size:
+    30px;
+
+}
+
+
+.file-content h3 {
+
+  margin:
+    0;
+
+  font-size:
+    15px;
+
+}
+
+
+.file-content p {
+
+  margin:
+    5px 0 12px;
+
+  font-size:
+    12px;
+
+  color:
+    #64748b;
+
+}
+
+
+.file-button {
+
+  border:
+    0;
+
+  border-radius:
+    8px;
+
+  padding:
+    9px 13px;
+
+  background:
+    #eef2f7;
+
+  cursor:
+    pointer;
+
+  font-weight:
+    600;
+
+}
+
+
+.file-name {
+
+  margin-top:
+    8px;
+
+  font-size:
+    11px;
+
+  color:
+    #64748b;
+
+}
+
+
+.generate-row {
+
+  border-top:
+    1px solid #edf1f5;
+
+  margin-top:
+    22px;
+
+  padding-top:
+    20px;
+
+  display:
+    flex;
+
+  justify-content:
+    space-between;
+
+  align-items:
+    center;
+
+}
+
+
+.generate-button {
+
+  padding:
+    12px 20px;
+
+  border:
+    0;
+
+  border-radius:
+    9px;
+
+  background:
+    #111827;
+
+  color:
+    white;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+}
+
+
+.generate-button:disabled {
+
+  background:
+    #cbd5e1;
+
+  cursor:
+    not-allowed;
+
+}
+
+
+/* ================================
+   TOOLBAR
+================================ */
+
+.toolbar {
+
+  background:
+    white;
+
+  border-radius:
+    14px;
+
+  padding:
+    17px;
+
+  margin-bottom:
+    20px;
+
+  display:
+    flex;
+
+  gap:
+    10px;
+
+  align-items:
+    center;
+
+  box-shadow:
+    0 5px 25px rgba(0,0,0,.05);
+
+}
+
+
+.toolbar input {
+
+  padding:
+    9px;
+
+  border:
+    1px solid #d7dee9;
+
+  border-radius:
+    7px;
+
+}
+
+
+.toolbar button {
+
+  border:
+    0;
+
+  padding:
+    9px 14px;
+
+  border-radius:
+    7px;
+
+  cursor:
+    pointer;
+
+  background:
+    #111827;
+
+  color:
+    white;
+
+}
+
 
 .status {
-  margin-left: auto;
-  font-size: 13px;
+
+  margin-left:
+    auto;
+
+  font-size:
+    12px;
+
+  color:
+    #64748b;
+
 }
+
+
+/* ================================
+   KPI
+================================ */
 
 .cards {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(6,1fr);
+
+  gap:
+    15px;
+
+  margin-bottom:
+    20px;
+
 }
+
 
 .card {
-  background: white;
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,.05);
+
+  background:
+    white;
+
+  border-radius:
+    14px;
+
+  padding:
+    20px;
+
+  box-shadow:
+    0 5px 25px rgba(0,0,0,.05);
+
 }
 
-.card .label {
-  font-size: 12px;
-  color: #687386;
+
+.card-title {
+
+  font-size:
+    11px;
+
+  text-transform:
+    uppercase;
+
+  color:
+    #718096;
+
+  font-weight:
+    700;
+
 }
 
-.card .value {
-  margin-top: 8px;
-  font-size: 28px;
-  font-weight: 700;
+
+.card-value {
+
+  margin-top:
+    8px;
+
+  font-size:
+    27px;
+
+  font-weight:
+    800;
+
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 22px;
+
+.card-danger .card-value {
+
+  color:
+    #dc2626;
+
 }
+
+
+/* ================================
+   GRID
+================================ */
+
+.dashboard-grid {
+
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:
+    20px;
+
+}
+
 
 .panel {
-  background: white;
-  border-radius: 14px;
-  padding: 22px;
-  box-shadow: 0 4px 20px rgba(0,0,0,.05);
+
+  background:
+    white;
+
+  border-radius:
+    14px;
+
+  padding:
+    22px;
+
+  box-shadow:
+    0 5px 25px rgba(0,0,0,.05);
+
 }
+
+
+.panel.full {
+
+  grid-column:
+    1 / -1;
+
+}
+
 
 .panel h2 {
-  margin-top: 0;
-  font-size: 18px;
+
+  margin:
+    0 0 18px;
+
+  font-size:
+    17px;
+
 }
 
-.chartBox {
-  height: 330px;
+
+.chart {
+
+  height:
+    320px;
+
 }
+
+
+/* ================================
+   TABLE
+================================ */
+
+.table-wrap {
+
+  overflow-x:
+    auto;
+
+}
+
 
 table {
-  width: 100%;
-  border-collapse: collapse;
+
+  width:
+    100%;
+
+  border-collapse:
+    collapse;
+
 }
+
+
+th {
+
+  background:
+    #f8fafc;
+
+  color:
+    #64748b;
+
+  font-size:
+    11px;
+
+  text-transform:
+    uppercase;
+
+}
+
 
 th,
 td {
-  padding: 11px;
-  border-bottom: 1px solid #edf0f5;
-  text-align: left;
-  font-size: 13px;
+
+  padding:
+    11px;
+
+  border-bottom:
+    1px solid #edf1f5;
+
+  font-size:
+    12px;
+
+  text-align:
+    left;
+
+  white-space:
+    nowrap;
+
 }
 
-th {
-  background: #f8fafc;
+
+.stale-row {
+
+  background:
+    #fee2e2 !important;
+
 }
 
-.stale {
-  color: #dc2626;
-  font-weight: 700;
+
+.stale-text {
+
+  color:
+    #dc2626;
+
+  font-weight:
+    800;
+
 }
 
-.good {
-  color: #059669;
-  font-weight: 700;
+
+.active-text {
+
+  color:
+    #059669;
+
+  font-weight:
+    700;
+
 }
 
-.full {
-  grid-column: 1 / -1;
-}
 
 .empty {
-  padding: 30px;
-  text-align: center;
-  color: #7b8494;
+
+  padding:
+    35px;
+
+  text-align:
+    center;
+
+  color:
+    #94a3b8;
+
 }
 
-@media(max-width:1100px) {
-  .cards {
-    grid-template-columns: repeat(3,1fr);
-  }
+
+/* ================================
+   LOADING
+================================ */
+
+.loading {
+
+  position:
+    fixed;
+
+  inset:
+    0;
+
+  background:
+    rgba(255,255,255,.75);
+
+  display:
+    none;
+
+  justify-content:
+    center;
+
+  align-items:
+    center;
+
+  z-index:
+    1000;
+
 }
 
-@media(max-width:700px) {
 
-  .container {
-    padding: 15px;
+.loading.show {
+
+  display:
+    flex;
+
+}
+
+
+.spinner {
+
+  width:
+    40px;
+
+  height:
+    40px;
+
+  border:
+    4px solid #e2e8f0;
+
+  border-top:
+    4px solid #111827;
+
+  border-radius:
+    50%;
+
+  animation:
+    spin 1s linear infinite;
+
+}
+
+
+@keyframes spin {
+
+  to {
+    transform:
+      rotate(360deg);
   }
+
+}
+
+
+.error {
+
+  display:
+    none;
+
+  background:
+    #fef2f2;
+
+  color:
+    #b91c1c;
+
+  padding:
+    14px;
+
+  border-radius:
+    9px;
+
+  margin-bottom:
+    20px;
+
+}
+
+
+@media(max-width:1200px) {
 
   .cards {
-    grid-template-columns: 1fr 1fr;
+
+    grid-template-columns:
+      repeat(3,1fr);
+
   }
 
-  .grid {
-    grid-template-columns: 1fr;
+}
+
+
+@media(max-width:800px) {
+
+  .upload-grid {
+
+    grid-template-columns:
+      1fr;
+
   }
+
+
+  .cards {
+
+    grid-template-columns:
+      repeat(2,1fr);
+
+  }
+
+
+  .dashboard-grid {
+
+    grid-template-columns:
+      1fr;
+
+  }
+
+
+  .panel.full {
+
+    grid-column:
+      auto;
+
+  }
+
+
+  .generate-row {
+
+    flex-direction:
+      column;
+
+    align-items:
+      stretch;
+
+    gap:
+      15px;
+
+  }
+
 }
 
 </style>
 
 </head>
 
+
 <body>
+
 
 <header class="header">
 
   <div>
-    <h1>AM Master Script</h1>
-    <span>Management Dashboard</span>
+
+    <h1>
+      AM Master Script
+    </h1>
+
+    <p>
+      Manager Intelligence Dashboard
+    </p>
+
   </div>
 
-  <span id="loadedDate"></span>
+  <div>
+    <strong>
+      Manager View
+    </strong>
+  </div>
 
 </header>
 
 
 <div class="container">
+
+
+<div
+  id="error"
+  class="error">
+</div>
+
+
 <!-- =====================================================
-     FILE UPLOAD SECTION
-     ===================================================== -->
+     UPLOAD
+===================================================== -->
 
 <section class="upload-panel">
 
+
   <div class="upload-header">
+
     <div>
-      <h2>Generate AM Master Report</h2>
+
+      <h2>
+        Generate AM Master Report
+      </h2>
+
       <p>
-        Upload both source reports to generate the consolidated
-        master report and individual AM reports.
+        Upload both reports. The system will automatically
+        match stale records against the open pipeline.
       </p>
+
     </div>
 
-    <div id="uploadStatus" class="upload-status">
+
+    <div
+      id="uploadStatus"
+      class="upload-status">
+
       Waiting for files
+
     </div>
+
   </div>
 
 
   <div class="upload-grid">
 
+
     <!-- AM STALE -->
 
-    <div class="file-box">
+    <div
+      class="file-box"
+      id="staleBox">
 
       <div class="file-icon">
         📊
       </div>
 
+
       <div class="file-content">
 
-        <h3>AM Stale Report</h3>
+        <h3>
+          AM Stale Report
+        </h3>
 
         <p>
-          Upload the latest AM stale Excel/CSV report.
+          Upload Excel or CSV.
         </p>
+
 
         <input
           type="file"
@@ -251,13 +963,15 @@ th {
           hidden
         >
 
+
         <button
-          class="upload-button"
+          class="file-button"
           onclick="document.getElementById('amStaleFile').click()">
 
-          Choose AM Stale File
+          Choose File
 
         </button>
+
 
         <div
           id="amStaleName"
@@ -274,19 +988,25 @@ th {
 
     <!-- OPEN PIPELINE -->
 
-    <div class="file-box">
+    <div
+      class="file-box"
+      id="pipelineBox">
 
       <div class="file-icon">
         💼
       </div>
 
+
       <div class="file-content">
 
-        <h3>Open Pipeline Report</h3>
+        <h3>
+          Open Pipeline
+        </h3>
 
         <p>
-          Upload the latest open pipeline Excel/CSV report.
+          Upload Excel or CSV.
         </p>
+
 
         <input
           type="file"
@@ -295,13 +1015,15 @@ th {
           hidden
         >
 
+
         <button
-          class="upload-button"
+          class="file-button"
           onclick="document.getElementById('openPipelineFile').click()">
 
-          Choose Open Pipeline
+          Choose File
 
         </button>
+
 
         <div
           id="openPipelineName"
@@ -315,10 +1037,12 @@ th {
 
     </div>
 
+
   </div>
 
 
   <div class="generate-row">
+
 
     <div>
 
@@ -326,10 +1050,13 @@ th {
         Both files are required
       </strong>
 
-      <span>
-        The system will automatically match stale
-        accounts/opportunities against the open pipeline.
-      </span>
+      <div
+        style="font-size:11px;color:#64748b;margin-top:4px">
+
+        Stale records will automatically be marked
+        <b>STALE = YES</b> and highlighted red.
+
+      </div>
 
     </div>
 
@@ -337,753 +1064,1917 @@ th {
     <button
       id="generateButton"
       class="generate-button"
-      onclick="generateMasterReport()"
-      disabled>
+      disabled
+      onclick="generateMasterReport()">
 
       Generate Master Report
 
     </button>
 
+
   </div>
+
 
 </section>
-  <div class="controls">
-
-    <label>
-      Date:
-      <input
-        type="date"
-        id="datePicker"
-      >
-    </label>
-
-    <button onclick="loadDashboard()">
-      Load Dashboard
-    </button>
-
-    <button onclick="loadLatest()">
-      Latest
-    </button>
-
-    <span
-      class="status"
-      id="status">
-      Ready
-    </span>
-
-  </div>
 
 
-  <section class="cards">
+<!-- =====================================================
+     DATE TOOLBAR
+===================================================== -->
 
-    <div class="card">
-      <div class="label">AMs</div>
-      <div class="value" id="totalAMs">0</div>
-    </div>
+<div class="toolbar">
 
-    <div class="card">
-      <div class="label">Accounts</div>
-      <div class="value" id="totalAccounts">0</div>
-    </div>
+  <label>
 
-    <div class="card">
-      <div class="label">Opportunities</div>
-      <div class="value" id="totalOpportunities">0</div>
-    </div>
+    Report Date
 
-    <div class="card">
-      <div class="label">Stale</div>
-      <div
-        class="value stale"
-        id="staleCount">
-        0
-      </div>
-    </div>
+    <input
+      type="date"
+      id="datePicker"
+    >
 
-    <div class="card">
-      <div class="label">Open Pipeline</div>
-      <div class="value" id="openPipeline">0</div>
-    </div>
-
-    <div class="card">
-      <div class="label">Pipeline Value</div>
-      <div class="value" id="pipelineValue">0</div>
-    </div>
-
-  </section>
+  </label>
 
 
-  <div class="grid">
+  <button
+    onclick="loadSelectedDate()">
 
-    <div class="panel">
+    Load Date
 
-      <h2>Pipeline by Stage</h2>
-
-      <div class="chartBox">
-        <canvas id="stageChart"></canvas>
-      </div>
-
-    </div>
+  </button>
 
 
-    <div class="panel">
+  <button
+    onclick="loadLatest()">
 
-      <h2>Pipeline by AM</h2>
+    Latest
 
-      <div class="chartBox">
-        <canvas id="amChart"></canvas>
-      </div>
-
-    </div>
+  </button>
 
 
-    <div class="panel">
+  <button
+    onclick="loadHistory()">
 
-      <h2>AM Performance</h2>
+    History
 
-      <div id="amTable"></div>
-
-    </div>
-
-
-    <div class="panel">
-
-      <h2>Accounts</h2>
-
-      <div id="accountTable"></div>
-
-    </div>
+  </button>
 
 
-    <div class="panel full">
+  <div
+    id="status"
+    class="status">
 
-      <h2>Opportunities</h2>
-
-      <div id="opportunityTable"></div>
-
-    </div>
+    Ready
 
   </div>
 
 </div>
 
 
+<!-- =====================================================
+     KPI
+===================================================== -->
+
+<section class="cards">
+
+
+  <div class="card">
+
+    <div class="card-title">
+      Account Managers
+    </div>
+
+    <div
+      id="totalAMs"
+      class="card-value">
+
+      0
+
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <div class="card-title">
+      Accounts
+    </div>
+
+    <div
+      id="totalAccounts"
+      class="card-value">
+
+      0
+
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <div class="card-title">
+      Opportunities
+    </div>
+
+    <div
+      id="totalOpportunities"
+      class="card-value">
+
+      0
+
+    </div>
+
+  </div>
+
+
+  <div class="card card-danger">
+
+    <div class="card-title">
+      Stale
+    </div>
+
+    <div
+      id="staleCount"
+      class="card-value">
+
+      0
+
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <div class="card-title">
+      Open Pipeline
+    </div>
+
+    <div
+      id="openPipeline"
+      class="card-value">
+
+      0
+
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <div class="card-title">
+      Pipeline Value
+    </div>
+
+    <div
+      id="pipelineValue"
+      class="card-value">
+
+      ₹0
+
+    </div>
+
+  </div>
+
+
+</section>
+
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+<div class="dashboard-grid">
+
+
+<section class="panel">
+
+  <h2>
+    Pipeline by Stage
+  </h2>
+
+  <div class="chart">
+
+    <canvas
+      id="stageChart">
+    </canvas>
+
+  </div>
+
+</section>
+
+
+<section class="panel">
+
+  <h2>
+    Pipeline by AM
+  </h2>
+
+  <div class="chart">
+
+    <canvas
+      id="amChart">
+    </canvas>
+
+  </div>
+
+</section>
+
+
+<section class="panel full">
+
+  <h2>
+    AM Performance
+  </h2>
+
+  <div
+    id="amTable"
+    class="table-wrap">
+
+  </div>
+
+</section>
+
+
+<section class="panel">
+
+  <h2>
+    Account Overview
+  </h2>
+
+  <div
+    id="accountTable"
+    class="table-wrap">
+
+  </div>
+
+</section>
+
+
+<section class="panel">
+
+  <h2>
+    Stale Opportunities
+  </h2>
+
+  <div
+    id="staleTable"
+    class="table-wrap">
+
+  </div>
+
+</section>
+
+
+<section class="panel full">
+
+  <h2>
+    All Opportunities
+  </h2>
+
+  <div
+    id="opportunityTable"
+    class="table-wrap">
+
+  </div>
+
+</section>
+
+
+</div>
+
+
+</div>
+
+
+<div
+  id="loading"
+  class="loading">
+
+  <div class="spinner"></div>
+
+</div>
+
+
 <script>
 
-const API_URL =
-"https://script.google.com/macros/s/AKfycbyZ6eMO7VRVZ521OpdJfF9OEagKnU0CdRy60T6tCHPcHor6HdXDrXavclj0fn3u5lsS/exec";
+
+/* =====================================================
+   CONFIG
+===================================================== */
+
+
+/*
+ * We use the Vercel API proxy for POST.
+ */
+
+const PROCESS_API =
+  "/api/process";
+
+
+/*
+ * Your Apps Script GET endpoint.
+ */
+
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbx3qW2bLf9aec5FYUoJRuv87X10VvzRFSFHZL5YDfjFCGmoK3If5tT_sUZzqAVkgKKe/exec";
 
 
 let stageChart = null;
+
 let amChart = null;
 
 
-/**
- * Load dashboard
- */
-async function loadDashboard() {
+/* =====================================================
+   HELPERS
+===================================================== */
 
-  const date =
-    document.getElementById("datePicker").value;
+function $(id) {
 
-  if (!date) {
+  return document.getElementById(id);
 
-    setStatus("Select a date");
-
-    return;
-  }
-
-  setStatus("Loading...");
-
-  try {
-
-    const url =
-      API_URL +
-      "?action=dashboard&date=" +
-      encodeURIComponent(date);
-
-    const response =
-      await fetch(url, {
-        method: "GET",
-        cache: "no-store"
-      });
-
-    if (!response.ok) {
-      throw new Error(
-        "HTTP " + response.status
-      );
-    }
-
-    const result =
-      await response.json();
-
-    console.log("Dashboard API:", result);
-
-    if (!result.ok) {
-      throw new Error(
-        result.error ||
-        "API returned an error"
-      );
-    }
-
-    renderDashboard(result);
-
-    setStatus("Loaded");
-
-  } catch (error) {
-
-    console.error(error);
-
-    setStatus(
-      "Error: " + error.message
-    );
-
-    showEmpty();
-  }
 }
 
 
-/**
- * Latest
- */
-async function loadLatest() {
+function showLoading(
+  value
+) {
 
-  setStatus("Loading latest...");
+  $("loading")
+    .classList
+    .toggle(
+      "show",
+      value
+    );
+
+}
+
+
+function showError(
+  message
+) {
+
+  $("error").textContent =
+    message;
+
+  $("error").style.display =
+    "block";
+
+}
+
+
+function hideError() {
+
+  $("error").style.display =
+    "none";
+
+}
+
+
+function number(
+  value
+) {
+
+  return Number(
+    value || 0
+  ).toLocaleString(
+    "en-IN"
+  );
+
+}
+
+
+function currency(
+  value
+) {
+
+  return "₹" +
+    Number(
+      value || 0
+    ).toLocaleString(
+      "en-IN",
+      {
+        maximumFractionDigits:
+          0
+      }
+    );
+
+}
+
+
+function safe(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    );
+
+}
+
+
+/* =====================================================
+   FILE PARSER
+===================================================== */
+
+async function parseExcelFile(
+  file
+) {
+
+  const buffer =
+    await file.arrayBuffer();
+
+
+  const workbook =
+    XLSX.read(
+      buffer,
+      {
+        type: "array"
+      }
+    );
+
+
+  const firstSheet =
+    workbook.Sheets[
+      workbook.SheetNames[0]
+    ];
+
+
+  const rows =
+    XLSX.utils.sheet_to_json(
+      firstSheet,
+      {
+        defval: ""
+      }
+    );
+
+
+  return rows;
+
+}
+
+
+/* =====================================================
+   FILE SELECTION
+===================================================== */
+
+$("amStaleFile")
+  .addEventListener(
+    "change",
+    function() {
+
+      if (
+        this.files.length
+      ) {
+
+        $("amStaleName")
+          .textContent =
+          this.files[0].name;
+
+        $("staleBox")
+          .classList
+          .add("ready");
+
+      }
+
+
+      checkFiles();
+
+    }
+  );
+
+
+$("openPipelineFile")
+  .addEventListener(
+    "change",
+    function() {
+
+      if (
+        this.files.length
+      ) {
+
+        $("openPipelineName")
+          .textContent =
+          this.files[0].name;
+
+        $("pipelineBox")
+          .classList
+          .add("ready");
+
+      }
+
+
+      checkFiles();
+
+    }
+  );
+
+
+function checkFiles() {
+
+  const stale =
+    $("amStaleFile")
+      .files.length > 0;
+
+
+  const pipeline =
+    $("openPipelineFile")
+      .files.length > 0;
+
+
+  $("generateButton")
+    .disabled =
+    !(stale && pipeline);
+
+
+  if (
+    stale &&
+    pipeline
+  ) {
+
+    $("uploadStatus")
+      .textContent =
+      "Ready to generate";
+
+  } else if (stale) {
+
+    $("uploadStatus")
+      .textContent =
+      "Waiting for Open Pipeline";
+
+  } else if (pipeline) {
+
+    $("uploadStatus")
+      .textContent =
+      "Waiting for AM Stale";
+
+  } else {
+
+    $("uploadStatus")
+      .textContent =
+      "Waiting for files";
+
+  }
+
+}
+
+
+/* =====================================================
+   GENERATE REPORT
+===================================================== */
+
+async function generateMasterReport() {
+
+  hideError();
+
+
+  const staleFile =
+    $("amStaleFile")
+      .files[0];
+
+
+  const pipelineFile =
+    $("openPipelineFile")
+      .files[0];
+
+
+  if (
+    !staleFile ||
+    !pipelineFile
+  ) {
+
+    showError(
+      "Please upload both files."
+    );
+
+    return;
+
+  }
+
+
+  showLoading(true);
+
+
+  $("uploadStatus")
+    .textContent =
+    "Reading files...";
+
+
+  $("generateButton")
+    .disabled =
+    true;
+
 
   try {
+
+    const staleRows =
+      await parseExcelFile(
+        staleFile
+      );
+
+
+    const pipelineRows =
+      await parseExcelFile(
+        pipelineFile
+      );
+
+
+    if (
+      !staleRows.length
+    ) {
+
+      throw new Error(
+        "AM Stale report has no data."
+      );
+
+    }
+
+
+    if (
+      !pipelineRows.length
+    ) {
+
+      throw new Error(
+        "Open Pipeline report has no data."
+      );
+
+    }
+
+
+    $("uploadStatus")
+      .textContent =
+      "Generating report...";
+
+
+    const payload = {
+
+      action:
+        "generateReport",
+
+      amStaleRows:
+        staleRows,
+
+      openPipelineRows:
+        pipelineRows
+
+    };
+
 
     const response =
       await fetch(
-        API_URL +
-        "?action=dashboard",
+        PROCESS_API,
         {
-          cache: "no-store"
+
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json"
+
+          },
+
+          body:
+            JSON.stringify(
+              payload
+            )
+
         }
       );
 
-    if (!response.ok) {
-      throw new Error(
-        "HTTP " + response.status
-      );
-    }
 
     const result =
       await response.json();
 
-    console.log(
-      "Latest dashboard:",
-      result
-    );
 
-    if (!result.ok) {
+    if (
+      !result.ok
+    ) {
+
       throw new Error(
         result.error ||
-        "Unable to load dashboard"
+        "Report generation failed."
       );
+
     }
 
-    renderDashboard(result);
 
-    if (result.actualDate) {
+    $("uploadStatus")
+      .textContent =
+      "Report generated ✓";
 
-      document.getElementById(
-        "datePicker"
-      ).value = result.actualDate;
-    }
 
-    setStatus("Latest loaded");
+    $("generateButton")
+      .textContent =
+      "Generated ✓";
 
-  } catch (error) {
 
-    console.error(error);
+    alert(
 
-    setStatus(
-      "Error: " + error.message
+      "Report generated successfully.\n\n" +
+
+      "Master opportunities: " +
+      result.dashboard
+        .totalOpportunities +
+      "\n" +
+
+      "Stale opportunities: " +
+      result.dashboard
+        .staleCount +
+      "\n\n" +
+
+      "Master Excel and individual AM reports " +
+      "have been created in Google Drive."
+
     );
+
+
+    await loadLatest();
+
+
+  } catch(error) {
+
+    console.error(
+      error
+    );
+
+
+    showError(
+      error.message
+    );
+
+
+    $("uploadStatus")
+      .textContent =
+      "Generation failed";
+
+
+    $("generateButton")
+      .disabled =
+      false;
+
+
+  } finally {
+
+    showLoading(false);
+
   }
+
 }
 
 
-/**
- * Render
- */
-function renderDashboard(result) {
+/* =====================================================
+   GET API
+===================================================== */
 
-  const snapshot =
-    result.snapshot || {};
+async function api(
+  action,
+  date
+) {
+
+  let url =
+    APPS_SCRIPT_URL +
+    "?action=" +
+    encodeURIComponent(
+      action
+    );
+
+
+  if (date) {
+
+    url +=
+      "&date=" +
+      encodeURIComponent(
+        date
+      );
+
+  }
+
+
+  const response =
+    await fetch(
+      url,
+      {
+        cache:
+          "no-store"
+      }
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      "API error: " +
+      response.status
+    );
+
+  }
+
+
+  const data =
+    await response.json();
+
+
+  if (
+    !data.ok
+  ) {
+
+    throw new Error(
+      data.error ||
+      "API returned an error"
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+/* =====================================================
+   LATEST
+===================================================== */
+
+async function loadLatest() {
+
+  hideError();
+
+
+  $("status")
+    .textContent =
+    "Loading latest...";
+
+
+  try {
+
+    const result =
+      await api(
+        "dashboard"
+      );
+
+
+    render(
+      result
+    );
+
+
+    if (
+      result.actualDate
+    ) {
+
+      $("datePicker")
+        .value =
+        result.actualDate;
+
+    }
+
+
+    $("status")
+      .textContent =
+      "Latest loaded";
+
+
+  } catch(error) {
+
+    showError(
+      error.message
+    );
+
+
+    $("status")
+      .textContent =
+      "Failed";
+
+  }
+
+}
+
+
+/* =====================================================
+   SELECTED DATE
+===================================================== */
+
+async function loadSelectedDate() {
+
+  const date =
+    $("datePicker")
+      .value;
+
+
+  if (!date) {
+
+    showError(
+      "Select a date first."
+    );
+
+    return;
+
+  }
+
+
+  hideError();
+
+
+  $("status")
+    .textContent =
+    "Loading " +
+    date +
+    "...";
+
+
+  try {
+
+    const result =
+      await api(
+        "dashboard",
+        date
+      );
+
+
+    render(
+      result
+    );
+
+
+    $("status")
+      .textContent =
+      result.actualDate === date
+        ? "Date loaded"
+        : "Latest available loaded";
+
+
+  } catch(error) {
+
+    showError(
+      error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   HISTORY
+===================================================== */
+
+async function loadHistory() {
+
+  try {
+
+    const result =
+      await api(
+        "history"
+      );
+
+
+    const history =
+      result.history ||
+      [];
+
+
+    if (
+      !history.length
+    ) {
+
+      alert(
+        "No historical reports found."
+      );
+
+      return;
+
+    }
+
+
+    const choice =
+      prompt(
+
+        "Available report dates:\n\n" +
+
+        history
+          .map(
+            x => x.date
+          )
+          .join(
+            "\n"
+          ) +
+
+        "\n\nEnter date:"
+
+      );
+
+
+    if (!choice) {
+
+      return;
+
+    }
+
+
+    $("datePicker")
+      .value =
+      choice;
+
+
+    await loadSelectedDate();
+
+
+  } catch(error) {
+
+    showError(
+      error.message
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   RENDER
+===================================================== */
+
+function render(
+  result
+) {
+
+  const data =
+    result.snapshot ||
+    {};
+
 
   const summary =
-    snapshot.summary || {};
-
-  document.getElementById(
-    "loadedDate"
-  ).textContent =
-    result.actualDate ||
-    result.date ||
-    "";
+    data.summary ||
+    {};
 
 
-  document.getElementById(
-    "totalAMs"
-  ).textContent =
-    formatNumber(
+  $("totalAMs")
+    .textContent =
+    number(
       summary.totalAMs
     );
 
 
-  document.getElementById(
-    "totalAccounts"
-  ).textContent =
-    formatNumber(
+  $("totalAccounts")
+    .textContent =
+    number(
       summary.totalAccounts
     );
 
 
-  document.getElementById(
-    "totalOpportunities"
-  ).textContent =
-    formatNumber(
+  $("totalOpportunities")
+    .textContent =
+    number(
       summary.totalOpportunities
     );
 
 
-  document.getElementById(
-    "staleCount"
-  ).textContent =
-    formatNumber(
+  $("staleCount")
+    .textContent =
+    number(
       summary.staleCount
     );
 
 
-  document.getElementById(
-    "openPipeline"
-  ).textContent =
-    formatNumber(
+  $("openPipeline")
+    .textContent =
+    number(
       summary.openPipeline
     );
 
 
-  document.getElementById(
-    "pipelineValue"
-  ).textContent =
-    formatCurrency(
+  $("pipelineValue")
+    .textContent =
+    currency(
       summary.pipelineValue
     );
 
 
   renderStageChart(
-    snapshot.stages || []
+    data.stages ||
+    []
   );
 
 
   renderAMChart(
-    snapshot.ams || []
+    data.ams ||
+    []
   );
 
 
   renderAMTable(
-    snapshot.ams || []
+    data.ams ||
+    []
   );
 
 
   renderAccountTable(
-    snapshot.accounts || []
+    data.accounts ||
+    []
+  );
+
+
+  renderStaleTable(
+    data.opportunities ||
+    []
   );
 
 
   renderOpportunityTable(
-    snapshot.opportunities || []
+    data.opportunities ||
+    []
   );
+
 }
 
 
-/**
- * Stage chart
- */
-function renderStageChart(data) {
+/* =====================================================
+   STAGE CHART
+===================================================== */
+
+function renderStageChart(
+  data
+) {
 
   const ctx =
-    document
-      .getElementById("stageChart")
-      .getContext("2d");
+    $("stageChart")
+      .getContext(
+        "2d"
+      );
 
-  if (stageChart) {
+
+  if (
+    stageChart
+  ) {
+
     stageChart.destroy();
+
   }
+
 
   stageChart =
-    new Chart(ctx, {
+    new Chart(
+      ctx,
+      {
 
-      type: "doughnut",
+        type:
+          "doughnut",
 
-      data: {
+        data: {
 
-        labels:
-          data.map(
-            x => x.stage
-          ),
-
-        datasets: [{
-
-          data:
+          labels:
             data.map(
-              x => x.value || x.count || 0
-            )
+              x => x.stage
+            ),
 
-        }]
+          datasets: [{
 
-      },
+            data:
+              data.map(
+                x =>
+                  x.value
+              )
 
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
+          }]
+
+        },
+
+        options: {
+
+          responsive:
+            true,
+
+          maintainAspectRatio:
+            false,
+
+          plugins: {
+
+            legend: {
+
+              position:
+                "bottom"
+
+            }
+
+          }
+
+        }
+
       }
+    );
 
-    });
 }
 
 
-/**
- * AM chart
- */
-function renderAMChart(data) {
+/* =====================================================
+   AM CHART
+===================================================== */
+
+function renderAMChart(
+  data
+) {
 
   const ctx =
-    document
-      .getElementById("amChart")
-      .getContext("2d");
+    $("amChart")
+      .getContext(
+        "2d"
+      );
 
-  if (amChart) {
+
+  if (
+    amChart
+  ) {
+
     amChart.destroy();
+
   }
 
+
   amChart =
-    new Chart(ctx, {
+    new Chart(
+      ctx,
+      {
 
-      type: "bar",
+        type:
+          "bar",
 
-      data: {
+        data: {
 
-        labels:
-          data.map(
-            x => x.name
-          ),
-
-        datasets: [{
-
-          label: "Pipeline",
-
-          data:
+          labels:
             data.map(
-              x => x.pipeline || 0
-            )
+              x => x.name
+            ),
 
-        }]
+          datasets: [{
 
-      },
+            label:
+              "Pipeline",
 
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
+            data:
+              data.map(
+                x =>
+                  x.pipeline
+              )
+
+          }]
+
+        },
+
+        options: {
+
+          responsive:
+            true,
+
+          maintainAspectRatio:
+            false,
+
+          scales: {
+
+            y: {
+
+              beginAtZero:
+                true
+
+            }
+
+          }
+
+        }
+
       }
+    );
 
-    });
 }
 
 
-/**
- * AM table
- */
-function renderAMTable(data) {
+/* =====================================================
+   AM TABLE
+===================================================== */
 
-  if (!data.length) {
+function renderAMTable(
+  data
+) {
 
-    document.getElementById(
-      "amTable"
-    ).innerHTML =
+  if (
+    !data.length
+  ) {
+
+    $("amTable").innerHTML =
       '<div class="empty">No AM data</div>';
 
     return;
+
   }
 
+
   let html = `
-  <table>
 
-    <thead>
-      <tr>
-        <th>AM</th>
-        <th>Accounts</th>
-        <th>Opportunities</th>
-        <th>Stale</th>
-        <th>Pipeline</th>
-      </tr>
-    </thead>
+<table>
 
-    <tbody>
-  `;
+<thead>
 
-  data.forEach(x => {
+<tr>
 
-    html += `
-      <tr>
+<th>AM</th>
+<th>Accounts</th>
+<th>Opportunities</th>
+<th>Stale</th>
+<th>Pipeline</th>
 
-        <td>${safe(x.name)}</td>
+</tr>
 
-        <td>${formatNumber(x.accounts)}</td>
+</thead>
 
-        <td>${formatNumber(x.opportunities)}</td>
+<tbody>
+`;
 
-        <td class="stale">
-          ${formatNumber(x.stale)}
-        </td>
 
-        <td>
-          ${formatCurrency(x.pipeline)}
-        </td>
+  data.forEach(
+    function(x) {
 
-      </tr>
-    `;
-  });
+      html += `
 
-  html += `
-    </tbody>
-  </table>
-  `;
+<tr>
 
-  document.getElementById(
-    "amTable"
-  ).innerHTML = html;
+<td>
+<strong>
+${safe(x.name)}
+</strong>
+</td>
+
+<td>
+${number(x.accounts)}
+</td>
+
+<td>
+${number(x.opportunities)}
+</td>
+
+<td class="stale-text">
+${number(x.stale)}
+</td>
+
+<td>
+${currency(x.pipeline)}
+</td>
+
+</tr>
+
+`;
+
+    }
+  );
+
+
+  html +=
+    "</tbody></table>";
+
+
+  $("amTable").innerHTML =
+    html;
+
 }
 
 
-/**
- * Account table
- */
-function renderAccountTable(data) {
+/* =====================================================
+   ACCOUNT TABLE
+===================================================== */
 
-  if (!data.length) {
+function renderAccountTable(
+  data
+) {
 
-    document.getElementById(
-      "accountTable"
-    ).innerHTML =
+  if (
+    !data.length
+  ) {
+
+    $("accountTable").innerHTML =
       '<div class="empty">No account data</div>';
 
     return;
+
   }
 
-  let html = `
-  <table>
-
-    <thead>
-      <tr>
-        <th>Account</th>
-        <th>AM</th>
-        <th>Opportunities</th>
-        <th>Stale</th>
-        <th>Pipeline</th>
-      </tr>
-    </thead>
-
-    <tbody>
-  `;
-
-  data.forEach(x => {
-
-    html += `
-      <tr>
-
-        <td>${safe(x.account)}</td>
-
-        <td>${safe(x.am)}</td>
-
-        <td>
-          ${formatNumber(x.opportunities)}
-        </td>
-
-        <td class="${x.stale > 0 ? "stale" : "good"}">
-          ${formatNumber(x.stale)}
-        </td>
-
-        <td>
-          ${formatCurrency(x.pipeline)}
-        </td>
-
-      </tr>
-    `;
-  });
-
-  html += `
-    </tbody>
-  </table>
-  `;
-
-  document.getElementById(
-    "accountTable"
-  ).innerHTML = html;
-}
-
-
-/**
- * Opportunity table
- */
-function renderOpportunityTable(data) {
-
-  if (!data.length) {
-
-    document.getElementById(
-      "opportunityTable"
-    ).innerHTML =
-      '<div class="empty">No opportunity data</div>';
-
-    return;
-  }
 
   let html = `
-  <table>
 
-    <thead>
-      <tr>
-        <th>Opportunity</th>
-        <th>Account</th>
-        <th>AM</th>
-        <th>Stage</th>
-        <th>Value</th>
-        <th>Stale</th>
-      </tr>
-    </thead>
+<table>
 
-    <tbody>
-  `;
+<thead>
 
-  data.forEach(x => {
+<tr>
 
-    html += `
-      <tr>
+<th>Account</th>
+<th>AM</th>
+<th>Opportunities</th>
+<th>Stale</th>
+<th>Pipeline</th>
 
-        <td>${safe(x.opportunity)}</td>
+</tr>
 
-        <td>${safe(x.account)}</td>
+</thead>
 
-        <td>${safe(x.am)}</td>
+<tbody>
+`;
 
-        <td>${safe(x.stage)}</td>
 
-        <td>${formatCurrency(x.value)}</td>
+  data.forEach(
+    function(x) {
 
-        <td class="${x.stale ? "stale" : "good"}">
-          ${x.stale ? "YES" : "NO"}
-        </td>
+      html += `
 
-      </tr>
-    `;
-  });
+<tr>
 
-  html += `
-    </tbody>
-  </table>
-  `;
+<td>
+${safe(x.account)}
+</td>
 
-  document.getElementById(
-    "opportunityTable"
-  ).innerHTML = html;
+<td>
+${safe(x.am)}
+</td>
+
+<td>
+${number(x.opportunities)}
+</td>
+
+<td class="${
+  x.stale > 0
+    ? "stale-text"
+    : "active-text"
+}">
+
+${number(x.stale)}
+
+</td>
+
+<td>
+${currency(x.pipeline)}
+</td>
+
+</tr>
+
+`;
+
+    }
+  );
+
+
+  html +=
+    "</tbody></table>";
+
+
+  $("accountTable").innerHTML =
+    html;
+
 }
 
 
-/**
- * Empty
- */
-function showEmpty() {
+/* =====================================================
+   STALE TABLE
+===================================================== */
 
-  document.getElementById(
-    "totalAMs"
-  ).textContent = "0";
+function renderStaleTable(
+  data
+) {
 
-  document.getElementById(
-    "totalAccounts"
-  ).textContent = "0";
-
-  document.getElementById(
-    "totalOpportunities"
-  ).textContent = "0";
-
-  document.getElementById(
-    "staleCount"
-  ).textContent = "0";
-
-  document.getElementById(
-    "openPipeline"
-  ).textContent = "0";
-
-  document.getElementById(
-    "pipelineValue"
-  ).textContent = "0";
-}
-
-
-/**
- * Helpers
- */
-function formatNumber(value) {
-
-  return Number(value || 0)
-    .toLocaleString("en-IN");
-}
-
-
-function formatCurrency(value) {
-
-  return Number(value || 0)
-    .toLocaleString(
-      "en-IN",
-      {
-        maximumFractionDigits: 0
-      }
+  const stale =
+    data.filter(
+      x =>
+        String(
+          x.STALE
+        ).toUpperCase() ===
+        "YES"
     );
-}
 
-
-function safe(value) {
 
   if (
-    value === null ||
-    value === undefined
+    !stale.length
   ) {
-    return "";
+
+    $("staleTable").innerHTML =
+      '<div class="empty">No stale opportunities 🎉</div>';
+
+    return;
+
   }
 
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
+
+  let html = `
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Opportunity</th>
+<th>Account</th>
+<th>AM</th>
+<th>Stage</th>
+<th>Value</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+`;
+
+
+  stale.forEach(
+    function(x) {
+
+      const opportunity =
+        getFlexibleValue(
+          x,
+          [
+            "Opportunity",
+            "Opportunity Name",
+            "OpportunityName",
+            "Deal",
+            "Deal Name"
+          ]
+        );
+
+
+      const account =
+        getFlexibleValue(
+          x,
+          [
+            "Account",
+            "Account Name",
+            "AccountName",
+            "Customer",
+            "Customer Name"
+          ]
+        );
+
+
+      const am =
+        getFlexibleValue(
+          x,
+          [
+            "AM",
+            "AM Name",
+            "Account Manager",
+            "Account Manager Name",
+            "Owner",
+            "Owner Name"
+          ]
+        );
+
+
+      const stage =
+        getFlexibleValue(
+          x,
+          [
+            "Stage",
+            "Sales Stage",
+            "Opportunity Stage"
+          ]
+        );
+
+
+      const value =
+        getFlexibleValue(
+          x,
+          [
+            "Pipeline",
+            "Pipeline Value",
+            "Amount",
+            "Value",
+            "Opportunity Value"
+          ]
+        );
+
+
+      html += `
+
+<tr class="stale-row">
+
+<td>
+<strong class="stale-text">
+${safe(opportunity)}
+</strong>
+</td>
+
+<td>
+${safe(account)}
+</td>
+
+<td>
+${safe(am)}
+</td>
+
+<td>
+${safe(stage)}
+</td>
+
+<td class="stale-text">
+${currency(value)}
+</td>
+
+</tr>
+
+`;
+
+    }
+  );
+
+
+  html +=
+    "</tbody></table>";
+
+
+  $("staleTable").innerHTML =
+    html;
+
 }
 
 
-function setStatus(message) {
+/* =====================================================
+   OPPORTUNITY TABLE
+===================================================== */
 
-  document.getElementById(
-    "status"
-  ).textContent = message;
+function renderOpportunityTable(
+  data
+) {
+
+  if (
+    !data.length
+  ) {
+
+    $("opportunityTable").innerHTML =
+      '<div class="empty">No opportunities</div>';
+
+    return;
+
+  }
+
+
+  let html = `
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Opportunity</th>
+<th>Account</th>
+<th>AM</th>
+<th>Stage</th>
+<th>Value</th>
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+`;
+
+
+  data.forEach(
+    function(x) {
+
+      const opportunity =
+        getFlexibleValue(
+          x,
+          [
+            "Opportunity",
+            "Opportunity Name",
+            "OpportunityName",
+            "Deal",
+            "Deal Name"
+          ]
+        );
+
+
+      const account =
+        getFlexibleValue(
+          x,
+          [
+            "Account",
+            "Account Name",
+            "AccountName",
+            "Customer",
+            "Customer Name"
+          ]
+        );
+
+
+      const am =
+        getFlexibleValue(
+          x,
+          [
+            "AM",
+            "AM Name",
+            "Account Manager",
+            "Account Manager Name",
+            "Owner",
+            "Owner Name"
+          ]
+        );
+
+
+      const stage =
+        getFlexibleValue(
+          x,
+          [
+            "Stage",
+            "Sales Stage",
+            "Opportunity Stage"
+          ]
+        );
+
+
+      const value =
+        getFlexibleValue(
+          x,
+          [
+            "Pipeline",
+            "Pipeline Value",
+            "Amount",
+            "Value",
+            "Opportunity Value"
+          ]
+        );
+
+
+      const stale =
+        String(
+          x.STALE
+        ).toUpperCase() ===
+        "YES";
+
+
+      html += `
+
+<tr class="${
+  stale
+    ? "stale-row"
+    : ""
+}">
+
+<td>
+${safe(opportunity)}
+</td>
+
+<td>
+${safe(account)}
+</td>
+
+<td>
+${safe(am)}
+</td>
+
+<td>
+${safe(stage)}
+</td>
+
+<td>
+${currency(value)}
+</td>
+
+<td class="${
+  stale
+    ? "stale-text"
+    : "active-text"
+}">
+
+${
+  stale
+    ? "STALE"
+    : "ACTIVE"
+}
+
+</td>
+
+</tr>
+
+`;
+
+    }
+  );
+
+
+  html +=
+    "</tbody></table>";
+
+
+  $("opportunityTable").innerHTML =
+    html;
+
 }
 
 
-/**
- * Default date
- */
-document.getElementById(
-  "datePicker"
-).value =
+/* =====================================================
+   FLEXIBLE VALUE
+===================================================== */
+
+function getFlexibleValue(
+  row,
+  names
+) {
+
+  const keys =
+    Object.keys(
+      row
+    );
+
+
+  for (
+    const name of names
+  ) {
+
+    const target =
+      normalizeHeader(
+        name
+      );
+
+
+    for (
+      const key of keys
+    ) {
+
+      if (
+        normalizeHeader(
+          key
+        ) ===
+        target
+      ) {
+
+        return row[key];
+
+      }
+
+    }
+
+  }
+
+
+  return "";
+
+}
+
+
+function normalizeHeader(
+  value
+) {
+
+  return String(
+    value || ""
+  )
+    .toLowerCase()
+    .replace(
+      /[^a-z0-9]/g,
+      ""
+    );
+
+}
+
+
+/* =====================================================
+   INIT
+===================================================== */
+
+$("datePicker")
+  .value =
   new Date()
     .toISOString()
-    .slice(0, 10);
+    .substring(
+      0,
+      10
+    );
 
 
-/**
- * Automatically load latest
- */
 loadLatest();
 
 </script>
 
+
 </body>
+
 </html>
